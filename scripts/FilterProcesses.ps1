@@ -65,6 +65,40 @@ function Show-Processes {
         }
     }
 }
+
+function Stop-AllFilteredProcesses {
+    param(
+        [System.Diagnostics.Process[]] $Processes
+    )
+
+    Clear-Host    
+    Write-Host "Killing all found processes...:" -ForegroundColor Green
+    
+    $Suffixes = [System.Collections.Generic.List[string]]::new()
+    $Colors = [System.Collections.Generic.List[string]]::new()
+    foreach ($Process in $Processes) {
+        if ($Process.HasExited) {
+            $Suffixes.Add("(Already Exited)")
+            $Colors.Add("DarkYellow")
+            continue
+        }
+        try {
+            $Process.Kill()
+            $Suffixes.Add("(Killed)")
+            $Colors.Add("Green")
+        }
+        catch {
+            $Failed.Add($Count, "$_.Exception")
+            $Suffixes.Add("(Failed)")
+            $Colors.Add("Red")
+        }
+    }
+
+    Show-Processes $Processes $Suffixes.ToArray() $Colors.ToArray()
+    Write-Host "`nPress any key to continue..." -ForegroundColor White
+    [void][System.Console]::ReadKey($true)
+}
+
 # ==============================================================================
 # =================================== Script ===================================
 # ==============================================================================
@@ -96,7 +130,7 @@ while ($true) {
     
     $UserInput = $Host.UI.RawUI.ReadKey("NoEcho, IncludeKeyDown")
     switch ($UserInput.Character) {
-        'k' { }
+        'k' { Stop-AllFilteredProcesses $FilteredProcesses }
         's' { }
         'a' { }
         'f' { }
