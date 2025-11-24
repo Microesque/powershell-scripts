@@ -1,0 +1,10 @@
+# Ignore everything
+*
+
+# Whitelisted folders/files
+!/.gitignore
+!/LICENSE.txt
+!/README.md
+
+!/scripts/
+!/scripts/**
