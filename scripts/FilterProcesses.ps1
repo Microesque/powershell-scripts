@@ -12,6 +12,11 @@ if (-not $CurrentPrincipal.IsInRole($Admin)) {
 # ==============================================================================
 # ================================== Functions =================================
 # ==============================================================================
+function Wait-CustomPause {
+    Write-Host "`nPress any key to continue..." -ForegroundColor White
+    [void][System.Console]::ReadKey($true)
+}
+
 function Show-Processes {
     param(
         [System.Diagnostics.Process[]] $Processes,
@@ -95,8 +100,7 @@ function Stop-AllFilteredProcesses {
     }
 
     Show-Processes $Processes $Suffixes.ToArray() $Colors.ToArray()
-    Write-Host "`nPress any key to continue..." -ForegroundColor White
-    [void][System.Console]::ReadKey($true)
+    Wait-CustomPause
 }
 
 # ==============================================================================
