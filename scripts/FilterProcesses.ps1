@@ -165,14 +165,63 @@ function Stop-SelectedFilteredProcesses {
     Wait-CustomPause
 }
 
+function Show-ProcessesAndAddFilter {
+    $Processes = Get-Process
+
+    Clear-Host
+    Write-Host "List of all running processes:" -ForegroundColor Green
+    Show-Processes $Processes -IsUniform $true
+    Write-Host "`nEnter a row number to add as a filter (leave empty to skip):" -ForegroundColor White
+
+    $UserInput = (Read-Host).Trim()
+    if ($UserInput -eq "") {
+        return
+    }
+    if ($UserInput -notmatch '^\d+$') {
+        Clear-Host
+        Write-Host "Invalid number. Please enter a row number or skip. -> [$UserInput]" -ForegroundColor Red
+        Wait-CustomPause
+        return
+    }
+
+    $Row = [int]$UserInput
+    if ($Row -eq 0 -or $Row -gt $Processes.Count) {
+        Clear-Host
+        Write-Host "Number out of range. Please enter a row number or skip. -> [$UserInput]" -ForegroundColor Red
+        Wait-CustomPause
+        return
+    }
+
+    $Process = $Processes[$Row - 1]
+    Clear-Host
+    Write-Host "Processes Selected - PID:"  -ForegroundColor Green -NoNewline
+    Write-Host " $($Process.Id)"            -ForegroundColor Cyan
+    Write-Host "Processes Selected - Name:" -ForegroundColor Green -NoNewline
+    Write-Host " $($Process.ProcessName)"   -ForegroundColor Cyan
+    Write-Host "`nEnter a description for the filter (max 40 chars):" -ForegroundColor White
+    $Description = (Read-Host).Trim()
+    if ($Description.Length -gt 40) {
+        $Description = $Description.Substring(0, 40)
+    }
+    
+    # Add-Filter $Process.ProcessName $Description
+
+    Clear-Host
+    Write-Host "Filter added - Name:"        -ForegroundColor Green -NoNewline
+    Write-Host " $($Process.ProcessName)"    -ForegroundColor Yellow
+    Write-Host "Filter added - Description:" -ForegroundColor Green -NoNewline
+    Write-Host " $Description"               -ForegroundColor Yellow
+    Wait-CustomPause
+}
+
 # ==============================================================================
 # =================================== Script ===================================
 # ==============================================================================
-# List of process names to filter
-$ProcessFilter = @(
-    "msedge",
-    "chromedriver"
-)
+# List of process names to filter (process name - description)
+$ProcessFilter = @{
+    "msedge" = "Microsoft edge"
+    "chromedriver" = "Chrome driver instance"
+}
 
 # User interface loop
 while ($true) {
@@ -181,7 +230,7 @@ while ($true) {
     Write-Host " (PID)"                   -ForegroundColor Red   -NoNewline
     Write-Host " (ProcessName)"           -ForegroundColor Cyan
 
-    $FilteredProcesses = Get-Process | Where-Object { $ProcessFilter -contains $_.ProcessName }
+    $FilteredProcesses = Get-Process | Where-Object { $ProcessFilter.ContainsKey($_.ProcessName) }
     Show-Processes $FilteredProcesses -IsUniform $true -UniformColor "default"
 
     Write-Host (
@@ -198,7 +247,7 @@ while ($true) {
     switch ($UserInput.Character) {
         'k' { Stop-AllFilteredProcesses $FilteredProcesses }
         's' { Stop-SelectedFilteredProcesses $FilteredProcesses }
-        'a' { }
+        'a' { Show-ProcessesAndAddFilter }
         'f' { }
         'e' { Exit }
     }
