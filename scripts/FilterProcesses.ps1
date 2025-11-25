@@ -103,6 +103,68 @@ function Stop-AllFilteredProcesses {
     Wait-CustomPause
 }
 
+function Stop-SelectedFilteredProcesses {
+    param(
+        [System.Diagnostics.Process[]] $Processes
+    )
+
+    Clear-Host
+    Write-Host "Waiting for selection:" -ForegroundColor Green
+    Show-Processes $Processes -IsUniform $true
+    Write-Host "`nEnter row number(s), separated by commas:" -ForegroundColor White
+    
+    $UserInput = (Read-Host)
+    $Rows = $UserInput -split ',' | ForEach-Object { $_.Trim() }
+    foreach ($Row in $Rows) {
+        if ($Row -notmatch "^\d+$") {
+            Clear-Host
+            Write-Host "Invalid number or character. Please enter row number(s), separated by commas. -> [$UserInput]" -ForegroundColor Red
+            Wait-CustomPause
+            return
+        }
+
+        $RowInt = [int]$Row
+        if ($RowInt -eq 0 -or $RowInt -gt $Processes.Count) {
+            Clear-Host
+            Write-Host "Number out of range. Please enter row number(s), separated by commas. -> [$UserInput]" -ForegroundColor Red
+            Wait-CustomPause
+            return
+        }
+    }
+
+    Clear-Host    
+    Write-Host "Killing selected processes...:" -ForegroundColor Green
+    
+    $Suffixes = [System.Collections.Generic.List[string]]::new()
+    $Colors = [System.Collections.Generic.List[string]]::new()
+    for ($i = 0; $i -lt $Processes.Count; $i++) {
+        $Process = $Processes[$i]
+        if (($i + 1).ToString() -notin $Rows) {
+            $Suffixes.Add("(Not Selected)")
+            $Colors.Add("Yellow")
+            continue
+        }
+        if ($Process.HasExited) {
+            $Suffixes.Add("(Already Exited)")
+            $Colors.Add("Green")
+            continue
+        }
+        try {
+            $Process.Kill()
+            $Suffixes.Add("(Killed)")
+            $Colors.Add("Green")
+        }
+        catch {
+            $Failed.Add($Count, "$_.Exception")
+            $Suffixes.Add("(Failed)")
+            $Colors.Add("Red")
+        }
+    }
+
+    Show-Processes $Processes $Suffixes.ToArray() $Colors.ToArray()
+    Wait-CustomPause
+}
+
 # ==============================================================================
 # =================================== Script ===================================
 # ==============================================================================
@@ -135,7 +197,7 @@ while ($true) {
     $UserInput = $Host.UI.RawUI.ReadKey("NoEcho, IncludeKeyDown")
     switch ($UserInput.Character) {
         'k' { Stop-AllFilteredProcesses $FilteredProcesses }
-        's' { }
+        's' { Stop-SelectedFilteredProcesses $FilteredProcesses }
         'a' { }
         'f' { }
         'e' { Exit }
