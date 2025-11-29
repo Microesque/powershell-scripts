@@ -52,6 +52,11 @@ function Test-FilterFile {
     return @($Lines, $Filters, $StartIndex, $EndIndex)
 }
 
+# Throws on fail with error message
+function Get-Filters {
+    return (Test-FilterFile)[1]
+}
+
 function Wait-CustomPause {
     Write-Host "`nPress any key to continue..." -ForegroundColor White
     [void][System.Console]::ReadKey($true)
