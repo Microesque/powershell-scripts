@@ -12,6 +12,46 @@ if (-not $CurrentPrincipal.IsInRole($Admin)) {
 # ==============================================================================
 # ================================== Functions =================================
 # ==============================================================================
+# Throws on fail with error message
+# returns -> [$Lines, $Filters, $StartIndex, $EndIndex]
+function Test-FilterFile {
+    # Verify file path and read
+    if (-not (Test-Path $PSCommandPath)) {
+        throw "Invalid file path. -> [$PSCommandPath]"
+    }
+    $Lines = [System.Collections.ArrayList] (Get-Content $PSCommandPath)
+
+    # Find start index
+    $StartIndex = $Lines.IndexOf('$ProcessFilter = @{')
+    if ($StartIndex -eq -1) {
+        throw "Could not find a line that match [`$ProcessFilter = @{] (filter declaration start)."
+    }
+
+    # Find end index
+    $EndIndex = $Lines.IndexOf('}', ($StartIndex + 1))
+    if ($EndIndex -eq -1) {
+        throw "Could not find a line that match [}] (filter declaration end)."
+    }
+
+    # Extract filters
+    $Filters = @{}
+    for ($i = ($StartIndex + 1); $i -lt $EndIndex; $i++) {
+        $Line = $Lines[$i]
+        if ($Line -notmatch '^    "(.*?)" = "(.*?)"$') {
+            throw "Invalid filter entry found. -> [$Line]"
+        }
+        if ($Matches[1] -match '[\\/:*?"<>|]') {
+            throw "Invalid key found. -> [$Line]"
+        }
+        if ($Matches[2] -match '[\\/:*?"<>|]') {
+            throw "Invalid value found. -> [$Line]"
+        }
+        $Filters[$Matches[1]] = $Matches[2]
+    }
+
+    return @($Lines, $Filters, $StartIndex, $EndIndex)
+}
+
 function Wait-CustomPause {
     Write-Host "`nPress any key to continue..." -ForegroundColor White
     [void][System.Console]::ReadKey($true)
