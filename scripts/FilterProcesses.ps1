@@ -10,7 +10,7 @@ if (-not $CurrentPrincipal.IsInRole($Admin)) {
 }
 
 # ==============================================================================
-# ================================== Functions =================================
+# ============================== Filter Functions ==============================
 # ==============================================================================
 # Throws on fail with error message
 # returns nothing
@@ -92,6 +92,9 @@ function Set-Filters {
     Set-Content $PSCommandPath $Lines -Force
 }
 
+# ==============================================================================
+# =============================== User Functions ===============================
+# ==============================================================================
 function Wait-CustomPause {
     Write-Host "`nPress any key to continue..." -ForegroundColor White
     [void][System.Console]::ReadKey($true)
