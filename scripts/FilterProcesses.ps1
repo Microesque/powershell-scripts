@@ -72,6 +72,26 @@ function Get-Filters {
     return (Test-FilterFile)[1]
 }
 
+# Throws on fail with error message
+# returns nothing
+function Set-Filters {
+    param (
+        [Parameter(Mandatory=$true)]
+        [hashtable]$Filters
+    )
+
+    # Test filters
+    Test-FilterHashtable $Filters
+    $Lines, $null, $StartIndex, $EndIndex = Test-FilterFile
+
+    # Update filters
+    $Lines.RemoveRange($StartIndex + 1, $EndIndex - $StartIndex - 1)
+    foreach ($Filter in $Filters.GetEnumerator()) {
+        $Lines.Insert($StartIndex + 1, "    `"$($Filter.Key)`" = `"$($Filter.Value)`"")
+    }
+    Set-Content $PSCommandPath $Lines -Force
+}
+
 function Wait-CustomPause {
     Write-Host "`nPress any key to continue..." -ForegroundColor White
     [void][System.Console]::ReadKey($true)
