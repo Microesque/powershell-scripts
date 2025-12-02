@@ -13,6 +13,26 @@ if (-not $CurrentPrincipal.IsInRole($Admin)) {
 # ================================== Functions =================================
 # ==============================================================================
 # Throws on fail with error message
+# returns nothing
+function Test-FilterHashtable {
+    param (
+        [Parameter(Mandatory=$true)]
+        [hashtable]$Filters
+    )
+
+    foreach ($Filter in $Filters.GetEnumerator()) {
+        $Key = [string]$Filter.Key
+        $Value = [string]$Filter.Value
+        if ($Key -match '[\\/:*?"<>|]') {
+            throw "Invalid key found. -> [$Key]"
+        }
+        if ($Value -match '[\\/:*?"<>|]') {
+            throw "Invalid value found. -> [$Value]"
+        }
+    }
+}
+
+# Throws on fail with error message
 # returns -> [$Lines, $Filters, $StartIndex, $EndIndex]
 function Test-FilterFile {
     # Verify file path and read
@@ -33,21 +53,16 @@ function Test-FilterFile {
         throw "Could not find a line that match [}] (filter declaration end)."
     }
 
-    # Extract filters
+    # Extract and verify filters
     $Filters = @{}
     for ($i = ($StartIndex + 1); $i -lt $EndIndex; $i++) {
         $Line = $Lines[$i]
         if ($Line -notmatch '^    "(.*?)" = "(.*?)"$') {
             throw "Invalid filter entry found. -> [$Line]"
         }
-        if ($Matches[1] -match '[\\/:*?"<>|]') {
-            throw "Invalid key found. -> [$Line]"
-        }
-        if ($Matches[2] -match '[\\/:*?"<>|]') {
-            throw "Invalid value found. -> [$Line]"
-        }
         $Filters[$Matches[1]] = $Matches[2]
     }
+    Test-FilterHashtable $Filters
 
     return @($Lines, $Filters, $StartIndex, $EndIndex)
 }
