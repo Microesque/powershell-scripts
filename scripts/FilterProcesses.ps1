@@ -197,21 +197,23 @@ function Stop-SelectedFilteredProcesses {
     Write-Host "`nEnter row number(s), separated by commas:" -ForegroundColor White
     
     $UserInput = (Read-Host)
-    $Rows = $UserInput -split ',' | ForEach-Object { $_.Trim() }
-    foreach ($Row in $Rows) {
-        if ($Row -notmatch "^\d+$") {
-            Clear-Host
-            Write-Host "Invalid number or character. Please enter row number(s), separated by commas. -> [$UserInput]" -ForegroundColor Red
-            Wait-CustomPause
-            return
-        }
+    if ($UserInput -ne "") {
+        $Rows = $UserInput -split ',' | ForEach-Object { $_.Trim() }
+        foreach ($Row in $Rows) {
+            if ($Row -notmatch "^\d+$") {
+                Clear-Host
+                Write-Host "Invalid number or character. Please enter row number(s), separated by commas. -> [$UserInput]" -ForegroundColor Red
+                Wait-CustomPause
+                return
+            }
 
-        $RowInt = [int]$Row
-        if ($RowInt -eq 0 -or $RowInt -gt $Processes.Count) {
-            Clear-Host
-            Write-Host "Number out of range. Please enter row number(s), separated by commas. -> [$UserInput]" -ForegroundColor Red
-            Wait-CustomPause
-            return
+            $RowInt = [int]$Row
+            if ($RowInt -eq 0 -or $RowInt -gt $Processes.Count) {
+                Clear-Host
+                Write-Host "Number out of range. Please enter row number(s), separated by commas. -> [$UserInput]" -ForegroundColor Red
+                Wait-CustomPause
+                return
+            }
         }
     }
 
