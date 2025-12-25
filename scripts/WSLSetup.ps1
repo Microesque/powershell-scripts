@@ -145,20 +145,39 @@ function Test-HardwareRequirements {
     return $false
 }
 
-# Tests to see if wsl is already installed.
+# Tests to see if wsl is already installed and updates it if possible.
 # Returns $true or $false
 function Test-WSLInstallation {
-    $lines = & wsl --version
+    # Check installation
+    & wsl --version
     if ($LASTEXITCODE -ne 0) {
         Write-Log "WSL is not installed." -Fail
         return $false
     }
-    
     Write-Log "WSL is installed." -Success
+
+    # Update
+    $lines = & wsl --update 2>&1
+    $output = ($lines -join "`n").Replace("`0", "")
+    if ($LASTEXITCODE -ne 0) {
+        Write-Log "WSL update failed with exit code $LASTEXITCODE. Output:`n$output" -Fail
+        return $false
+    }
+
+    if ($output -match "already installed.") {
+        Write-Log "WSL is up to date." -Success
+    }
+    else {
+        Write-Log "WSL updated." -Success
+    }
+
+    # Print version
+    $lines = & wsl --version
     $lines |
         ForEach-Object { $_ -replace "`0", "" } |
         Where-Object { $_.Contains("WSL version:") } |
         ForEach-Object { Write-Log "$_" -Info }
+
     return $true
 }
 
