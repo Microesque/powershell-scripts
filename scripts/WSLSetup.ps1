@@ -62,6 +62,41 @@ function Write-Log {
     }
 }
 
+# Tests to see if software requirements for wsl installtion are met.
+# Returns $true or $false
+function Test-SoftwareRequirements {
+    $Result = $true
+
+    $osCaption = (Get-CimInstance Win32_OperatingSystem).Caption
+    Write-Log "OS Name: $osCaption"-Info
+
+    $Build = (Get-CimInstance Win32_OperatingSystem).BuildNumber
+    if ([int]$Build -ge 19041) {
+        Write-Log "Windows build: $Build -> Compatible with WSL2." -Success 
+    }
+    else {
+        Write-Log "Windows build: $Build -> Not compatible with WSL2. Requires build 19041+." -Fail
+        $Result = $false
+    }
+
+    $Vmp = Get-WindowsOptionalFeature -Online -FeatureName "VirtualMachinePlatform"
+    if ($Vmp.State -eq "Enabled") {
+        Write-Log "Virtual Machine Platform (VMP) is enabled." -Success
+    }
+    else {
+        $Msg = "Virtual Machine Platform (VMP) is disabled. WSL2 will not work." +
+        " Enable Virtual Machine Platform (VMP) and restart your computer."
+        Write-Log $Msg -Fail
+        $Result = $false
+    }
+    
+    return $Result
+}
+
 # ==============================================================================
 # =================================== SCRIPT ===================================
 # ==============================================================================
+
+Test-SoftwareRequirements
+
+Stop-ScriptAfterKeyPress
