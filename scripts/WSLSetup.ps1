@@ -93,10 +93,63 @@ function Test-SoftwareRequirements {
     return $Result
 }
 
+# Tests to see if hardware requirements for wsl installtion are met.
+# Returns $true or $false
+function Test-HardwareRequirements {
+    $processorNames = (Get-CimInstance Win32_Processor).Name -join " && "
+    $motherboardModel = (Get-CimInstance Win32_ComputerSystem).Model
+    Write-Log "Processor Name(s): $processorNames" -Info
+    Write-Log "Motherboard Model: $motherboardModel" -Info
+
+    if ((Get-CimInstance Win32_ComputerSystem).HypervisorPresent) {
+        Write-Log "Running hypervisor detected on the system." -Info
+
+        $hypervInfo = Get-CimInstance -ClassName "Win32_PerfRawData_HvStats_HyperVHypervisor" -ErrorAction SilentlyContinue
+        if ($hypervInfo) {
+            Write-Log "Hyper-V is active and WSL2 can run." -Success
+            return $true
+        }
+        
+        Write-Log "Detected hypervisor is likely not Hyper-V and could prevent WSL2 from running." -Fail
+        return $false
+    }
+
+    Write-Log "No running hypervisor detected. If the checks below are green, you may need to restart your computer." -Fail
+
+    $ProgressPreference = "SilentlyContinue"
+    $computerInfo = Get-ComputerInfo -Property "HyperVRequirement*"
+    $ProgressPreference = "Continue"
+
+    
+    if ($computerInfo.HyperVRequirementVMMonitorModeExtensions) {
+        Write-Log "CPU supports hardware virtualization (VT-x/AMD-V)." -Success
+    }
+    else {
+        Write-Log "CPU does not support hardware virtualization (VT-x/AMD-V). WSL2 cannot run on this system." -Fail
+    }
+
+    if ($computerInfo.HyperVRequirementSecondLevelAddressTranslation) {
+        Write-Log "CPU supports Second Level Address Translation (SLAT)." -Success
+    }
+    else {
+        Write-Log "CPU does not support Second Level Address Translation (SLAT). WSL2 cannot run on this system." -Fail
+    }
+
+    if ($computerInfo.HyperVRequirementVirtualizationFirmwareEnabled) {
+        Write-Log "Hardware virtualization is enabled in BIOS/UEFI." -Success
+    }
+    else {
+        Write-Log "Hardware virtualization is disabled in BIOS/UEFI. Enable it to use WSL2." -Fail
+    }
+
+    return $false
+}
+
 # ==============================================================================
 # =================================== SCRIPT ===================================
 # ==============================================================================
 
 Test-SoftwareRequirements
+Test-HardwareRequirements
 
 Stop-ScriptAfterKeyPress
