@@ -192,6 +192,20 @@ function Update-WSL {
     return $true
 }
 
+# Installs wsl. Make sure to do the required checks before calling this function.
+# Returns $true or $false
+function Install-WSL {
+    $lines = & wsl --install --no-distribution 2>&1
+    $output = ($lines -join "`n").Replace("`0", "")
+    if ($LASTEXITCODE -ne 0) {
+        Write-Log "WSL installation failed with exit code $LASTEXITCODE. Output:`n$output" -Fail
+        return $false
+    }
+    Write-Log "WSL installed successfully."
+
+    return $true
+}
+
 # ==============================================================================
 # =================================== SCRIPT ===================================
 # ==============================================================================
