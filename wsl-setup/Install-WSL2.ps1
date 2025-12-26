@@ -157,7 +157,7 @@ function Test-HardwareRequirements {
     return $false
 }
 
-# Tests to see if wsl is already installed and updates it if possible.
+# Tests to see if wsl is already installed. Prints the version info.
 # Returns $true or $false
 function Test-WSLInstallation {
     $lines = & wsl --version
@@ -196,12 +196,27 @@ function Update-WSL {
 # Returns $true or $false
 function Install-WSL {
     $lines = & wsl --install --no-distribution 2>&1
-    $output = ($lines -join "`n").Replace("`0", "")
     if ($LASTEXITCODE -ne 0) {
+        $output = ($lines -join "`n").Replace("`0", "")
         Write-Log "WSL installation failed with exit code $LASTEXITCODE. Output:`n$output" -Fail
         return $false
     }
-    Write-Log "WSL installed successfully."
+    Write-Log "WSL installed successfully." -Success
+
+    return $true
+}
+
+# Sets default wsl version to 2. This also verifies wsl2 compatibility as it'll fail if incompatible.
+# Returns $true or $false
+function Update-WSL2AsDefault {
+    # This command is idempotent
+    $lines = & wsl --set-default-version 2 2>&1
+    if ($LASTEXITCODE -ne 0) {
+        $output = ($lines -join "`n").Replace("`0", "")
+        Write-Log "Setting default WSL version to 2 failed with exit code $LASTEXITCODE. Output:`n$output" -Fail
+        return $false
+    }
+    Write-Log "Default version is now set to WSL2." -Success
 
     return $true
 }
@@ -212,14 +227,20 @@ function Install-WSL {
 Clear-Host
 
 Write-StepTitle "Checking software requirements"
-Test-SoftwareRequirements
+$null = Test-SoftwareRequirements
 
 Write-StepTitle "Checking hardware requirements"
-Test-HardwareRequirements
+$null = Test-HardwareRequirements
 
 Write-StepTitle "Checking for WSL installation"
 if (Test-WSLInstallation) {
-    Update-WSL
+    $null = Update-WSL
+}
+else {
+    $null = Install-WSL
+    $null = Update-WSL
+    $null = Test-WSLInstallation
+    $null = Update-WSL2AsDefault
 }
 
 Stop-ScriptAfterKeyPress
