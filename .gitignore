@@ -8,3 +8,6 @@
 
 !/scripts/
 !/scripts/**
+
+!/wsl-setup/
+!/wsl-setup/**
