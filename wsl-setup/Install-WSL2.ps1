@@ -97,7 +97,8 @@ function Test-SoftwareRequirements {
     $wsl = Get-WindowsOptionalFeature -Online -FeatureName "Microsoft-Windows-Subsystem-Linux"
     if ($wsl.State -eq "Enabled") {
         Write-Log "`"Windows Subsystem for Linux`" optional feature is enabled. WSL1 is also supported on this computer." -Success
-    } else {
+    }
+    else {
         Write-Log "`"Windows Subsystem for Linux`" optional feature is disabled. WSL1 is not supported on this computer." -Warning
     }
     
