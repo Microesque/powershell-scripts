@@ -65,32 +65,43 @@ function Write-Log {
 # Tests to see if software requirements for wsl installtion are met.
 # Returns $true or $false
 function Test-SoftwareRequirements {
-    $Result = $true
+    $result = $true
 
+    # Print OS name info
     $osCaption = (Get-CimInstance Win32_OperatingSystem).Caption
     Write-Log "OS Name: $osCaption"-Info
 
-    $Build = (Get-CimInstance Win32_OperatingSystem).BuildNumber
+    # Check build number, WSL2 requires 19041+
+    $build = (Get-CimInstance Win32_OperatingSystem).BuildNumber
     if ([int]$Build -ge 19041) {
-        Write-Log "Windows build: $Build -> Compatible with WSL2." -Success 
+        Write-Log "Windows build: $build -> Compatible with WSL2." -Success 
     }
     else {
-        Write-Log "Windows build: $Build -> Not compatible with WSL2. Requires build 19041+." -Fail
-        $Result = $false
+        Write-Log "Windows build: $build -> Not compatible with WSL2. Requires build 19041+." -Fail
+        $result = $false
     }
 
-    $Vmp = Get-WindowsOptionalFeature -Online -FeatureName "VirtualMachinePlatform"
-    if ($Vmp.State -eq "Enabled") {
+    # Check VMP windows feature
+    $vmp = Get-WindowsOptionalFeature -Online -FeatureName "VirtualMachinePlatform"
+    if ($vmp.State -eq "Enabled") {
         Write-Log "Virtual Machine Platform (VMP) is enabled." -Success
     }
     else {
-        $Msg = "Virtual Machine Platform (VMP) is disabled. WSL2 will not work." +
+        $msg = "Virtual Machine Platform (VMP) is disabled. WSL2 will not work." +
         " Enable Virtual Machine Platform (VMP) and restart your computer."
-        Write-Log $Msg -Fail
-        $Result = $false
+        Write-Log $msg -Fail
+        $result = $false
+    }
+
+    # Check WSL windows feature (this is only for WSL1, WSL2 doesn't require this)
+    $wsl = Get-WindowsOptionalFeature -Online -FeatureName "Microsoft-Windows-Subsystem-Linux"
+    if ($wsl.State -eq "Enabled") {
+        Write-Log "`"Windows Subsystem for Linux`" optional feature is enabled. WSL1 is also supported on this computer." -Success
+    } else {
+        Write-Log "`"Windows Subsystem for Linux`" optional feature is disabled. WSL1 is not supported on this computer." -Warning
     }
     
-    return $Result
+    return $result
 }
 
 # Tests to see if hardware requirements for wsl installtion are met.
@@ -174,9 +185,9 @@ function Test-WSLInstallation {
     # Print version
     $lines = & wsl --version
     $lines |
-        ForEach-Object { $_ -replace "`0", "" } |
-        Where-Object { $_.Contains("WSL version:") } |
-        ForEach-Object { Write-Log "$_" -Info }
+    ForEach-Object { $_ -replace "`0", "" } |
+    Where-Object { $_.Contains("WSL version:") } |
+    ForEach-Object { Write-Log "$_" -Info }
 
     return $true
 }
@@ -186,13 +197,13 @@ function Test-WSLInstallation {
 # ==============================================================================
 Clear-Host
 
-Write-StepTitle "Checking for WSL installation"
-Test-WSLInstallation
-
 Write-StepTitle "Checking software requirements"
 Test-SoftwareRequirements
 
 Write-StepTitle "Checking hardware requirements"
 Test-HardwareRequirements
+
+Write-StepTitle "Checking for WSL installation"
+Test-WSLInstallation
 
 Stop-ScriptAfterKeyPress
