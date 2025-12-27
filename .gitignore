@@ -1,13 +1,6 @@
-# Ignore everything
-*
+# Ignore hidden files excep .gitignore
+.*
+!.gitignore
 
-# Whitelisted folders/files
-!/.gitignore
-!/LICENSE.txt
-!/README.md
-
-!/scripts/
-!/scripts/**
-
-!/wsl-setup/
-!/wsl-setup/**
+# Ignore markdown notes
+*.md
