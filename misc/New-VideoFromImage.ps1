@@ -27,6 +27,61 @@ param (
 )
 
 # ==============================================================================
+# ================================= VALIDATION =================================
+# ==============================================================================
+# FfmpegExecutablePath
+if (-not (Test-Path $FfmpegExecutablePath -PathType Leaf)) {
+    Write-Host "ffmpeg executable is invalid or not found: `"$FfmpegExecutablePath`"" -ForegroundColor Red
+    exit 1
+}
+
+# ImagesFolderPath
+if (-not (Test-Path $ImagesFolderPath -PathType Container)) {
+    Write-Host "Images source folder is invalid or not found: `"$ImagesFolderPath`"" -ForegroundColor Red
+    exit 1
+}
+
+# ImagesRegex
+try {
+    [void][regex]::new($ImagesRegex)
+}
+catch {
+    Write-Host "Invalid regex: $ImagesRegex" -ForegroundColor Red
+    exit 1
+}
+
+# OutputFolderPath
+if (-not (Test-Path $OutputFolderPath -PathType Container)) {
+    Write-Host "Output destination folder is invalid or not found: `"$OutputFolderPath`"" -ForegroundColor Red
+    exit 1
+}
+
+# OutputFileName
+if ($OutputFileName.IndexOfAny([System.IO.Path]::GetInvalidFileNameChars()) -ne -1 -or
+    $OutputFileName.Trim().Length -eq 0) {
+    Write-Host "Invalid file name: `"$OutputFileName`"" -ForegroundColor Red
+    exit 1
+}
+
+# OutputFileWidth
+if ($OutputFileWidth -le 0) {
+    Write-Host "Invalid output file width: `"$OutputFileWidth`"" -ForegroundColor Red
+    exit 1
+}
+
+# OutputFileHeight
+if ($OutputFileHeight -le 0) {
+    Write-Host "Invalid output file height: `"$OutputFileHeight`"" -ForegroundColor Red
+    exit 1
+}
+
+# OutputFileFramerate
+if ($OutputFileFramerate -le 0) {
+    Write-Host "Invalid output file framerate: `"$OutputFileFramerate`"" -ForegroundColor Red
+    exit 1
+}
+
+# ==============================================================================
 # ================================== FUNCTIONS =================================
 # ==============================================================================
 function Stop-ScriptAfterKeyPress {
