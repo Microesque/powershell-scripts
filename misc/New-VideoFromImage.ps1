@@ -91,7 +91,7 @@ if ($OutputFileFramerate -le 0) {
 # ==============================================================================
 $images = Get-ChildItem -Path $ImagesFolderPath | Where-Object { $_.Name -match $ImagesRegex } | Sort-Object Name
 if (-not $images) {
-    Stop-ScriptWithErrorMessage "Output destination folder contains no matching images.`n  Path: `"$ImagesFolderPath`"`n  Pattern: `"$ImagesRegex`""
+    Stop-ScriptWithErrorMessage "Output destination folder contains no matching images:`n    Path: `"$ImagesFolderPath`"`n    Pattern: `"$ImagesRegex`""
 }
 
 if (-not $Y) {
