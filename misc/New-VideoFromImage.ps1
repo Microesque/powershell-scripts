@@ -1,15 +1,30 @@
+param (
+    [Parameter(Mandatory = $true)]
+    [string] $FfmpegExecutablePath,
 
-# ==============================================================================
-# ==================================== SETUP ===================================
-# ==============================================================================
-$ffmpeg_executable_path = "C:\Users\jdoe\Desktop\ffmpeg\bin\ffmpeg.exe"
-$images_folder_path     = "C:\Users\jdoe\Desktop\ss"
-$images_regex           = "^.*\.jpg$"
-$output_folder_path     = "C:\Users\jdoe\Desktop"
-$output_file_name       = "output.mp4"
-$output_file_width      = "2560"
-$output_file_height     = "1440"
-$output_file_framerate  = "60"
+    [Parameter(Mandatory = $true)]
+    [string] $ImagesFolderPath,
+
+    [Parameter(Mandatory = $true)]
+    [string] $ImagesRegex,
+
+    [Parameter(Mandatory = $true)]
+    [string] $OutputFolderPath,
+
+    [Parameter(Mandatory = $true)]
+    [string] $OutputFileName,
+
+    [Parameter(Mandatory = $true)]
+    [int] $OutputFileWidth,
+
+    [Parameter(Mandatory = $true)]
+    [int] $OutputFileHeight,
+
+    [Parameter(Mandatory = $true)]
+    [int] $OutputFileFramerate,
+
+    [switch] $Y
+)
 
 # ==============================================================================
 # ================================== FUNCTIONS =================================
@@ -25,40 +40,40 @@ function Stop-ScriptAfterKeyPress {
 # ==============================================================================
 # Verify paths
 Clear-Host
-if (-not (Test-Path $ffmpeg_executable_path)) {
-    Write-Host "ffmpeg executable not found at path `"$ffmpeg_executable_path`"." -ForegroundColor red
+if (-not (Test-Path $FfmpegExecutablePath)) {
+    Write-Host "ffmpeg executable not found at path `"$FfmpegExecutablePath`"." -ForegroundColor red
     Stop-ScriptAfterKeyPress
 }
-if (-not (Test-Path $images_folder_path)) {
-    Write-Host "Source folder not found at path `"$images_folder_path`"." -ForegroundColor red
+if (-not (Test-Path $ImagesFolderPath)) {
+    Write-Host "Source folder not found at path `"$ImagesFolderPath`"." -ForegroundColor red
     Stop-ScriptAfterKeyPress
 }
-if (-not (Test-Path $output_folder_path)) {
-    Write-Host "Destination folder not found at path `"$output_folder_path`"." -ForegroundColor red
+if (-not (Test-Path $OutputFolderPath)) {
+    Write-Host "Destination folder not found at path `"$OutputFolderPath`"." -ForegroundColor red
     Stop-ScriptAfterKeyPress
 }
 
 # Fetch the matching images
-$images = Get-ChildItem -Path $images_folder_path |
-          Where-Object { $_.Name -match $images_regex } |
-          Sort-Object Name
+$images = Get-ChildItem -Path $ImagesFolderPath |
+Where-Object { $_.Name -match $ImagesRegex } |
+Sort-Object Name
 
 # Exit if no image was found
 if (-not $images) {
     Clear-Host
-    Write-Host "No files found at `"$images_folder_path`" that match `"$images_regex`"." -ForegroundColor red
+    Write-Host "No files found at `"$ImagesFolderPath`" that match `"$ImagesRegex`"." -ForegroundColor red
     Stop-ScriptAfterKeyPress
 }
 
 # List found images (shorten if nececessary)
 Write-Host "Files found ($($images.Count) total):" -ForegroundColor green
-$show_limit = 40
-if ($images.Count -gt $show_limit) {
-    for ($i = 0; $i -lt ($show_limit / 2); $i++) {
+$showLimit = 40
+if ($images.Count -gt $showLimit) {
+    for ($i = 0; $i -lt ($showLimit / 2); $i++) {
         Write-Host "  $($images[$i].Name)" -ForegroundColor cyan
     }
     Write-Host "  ..." -ForegroundColor cyan
-    for ($i = ($images.Count - ($show_limit / 2)); $i -lt $images.Count; $i++) {
+    for ($i = ($images.Count - ($showLimit / 2)); $i -lt $images.Count; $i++) {
         Write-Host "  $($images[$i].Name)" -ForegroundColor cyan
     }
 }
@@ -80,27 +95,27 @@ try {
     Clear-Host
 
     # Create/overwrite a temporary file for the ffmpeg concat demuxer
-    $temp_file_path = Join-Path $images_folder_path "_000temp.txt"
-    $images | ForEach-Object { "file '$($_.FullName)'" } | Set-Content -Path $temp_file_path -Encoding ASCII
+    $tempFilePath = Join-Path $ImagesFolderPath "_000temp.txt"
+    $images | ForEach-Object { "file '$($_.FullName)'" } | Set-Content -Path $tempFilePath -Encoding ASCII
 
     # Run ffmpeg using the concat demuxer
     Write-Host "Total number of images: $($images.Count)" -ForegroundColor green
-    $output_file_path = Join-Path $output_folder_path $output_file_name
-    & $ffmpeg_executable_path `
+    $outputFilePath = Join-Path $OutputFolderPath $OutputFileName
+    & $FfmpegExecutablePath `
         -y `
-        -r $output_file_framerate `
+        -r $OutputFileFramerate `
         -safe 0 `
         -f concat `
-        -i $temp_file_path `
-        -vf "scale=$($output_file_width):$($output_file_height):force_original_aspect_ratio=decrease:flags=lanczos,pad=$($output_file_width):$($output_file_height):(ow-iw)/2:(oh-ih)/2:black" `
+        -i $tempFilePath `
+        -vf "scale=$($OutputFileWidth):$($OutputFileHeight):force_original_aspect_ratio=decrease:flags=lanczos,pad=$($OutputFileWidth):$($OutputFileHeight):(ow-iw)/2:(oh-ih)/2:black" `
         -c:v libx264 `
         -crf 18 `
         -pix_fmt yuv420p `
-        $output_file_path
+        $outputFilePath
 
     # Check if ffmpeg failed
     if ($LASTEXITCODE -eq 0) {
-        Write-Host "`nVideo file created at `"$output_file_path`"." -ForegroundColor green
+        Write-Host "`nVideo file created at `"$outputFilePath`"." -ForegroundColor green
     }
     Stop-ScriptAfterKeyPress
 }
@@ -110,7 +125,7 @@ catch {
     Stop-ScriptAfterKeyPress
 }
 finally {
-    if (Test-Path $temp_file_path) {
-        Remove-Item -Path $temp_file_path -Force
+    if (Test-Path $tempFilePath) {
+        Remove-Item -Path $tempFilePath -Force
     }
 }
