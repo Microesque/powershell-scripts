@@ -27,18 +27,29 @@ param (
 )
 
 # ==============================================================================
+# ================================== FUNCTIONS =================================
+# ==============================================================================
+function Stop-ScriptWithErrorMessage {
+    param (
+        [Parameter(Mandatory = $true)]
+        $msg
+    )
+
+    Write-Host $msg -ForegroundColor Red
+    exit 1
+}
+
+# ==============================================================================
 # ================================= VALIDATION =================================
 # ==============================================================================
 # FfmpegExecutablePath
 if (-not (Test-Path $FfmpegExecutablePath -PathType Leaf)) {
-    Write-Host "ffmpeg executable is invalid or not found: `"$FfmpegExecutablePath`"" -ForegroundColor Red
-    exit 1
+    Stop-ScriptWithErrorMessage "ffmpeg executable is invalid or not found: `"$FfmpegExecutablePath`""
 }
 
 # ImagesFolderPath
 if (-not (Test-Path $ImagesFolderPath -PathType Container)) {
-    Write-Host "Images source folder is invalid or not found: `"$ImagesFolderPath`"" -ForegroundColor Red
-    exit 1
+    Stop-ScriptWithErrorMessage "Images source folder is invalid or not found: `"$ImagesFolderPath`""
 }
 
 # ImagesRegex
@@ -46,39 +57,33 @@ try {
     [void][regex]::new($ImagesRegex)
 }
 catch {
-    Write-Host "Invalid regex: $ImagesRegex" -ForegroundColor Red
-    exit 1
+    Stop-ScriptWithErrorMessage "Invalid regex: $ImagesRegex"
 }
 
 # OutputFolderPath
 if (-not (Test-Path $OutputFolderPath -PathType Container)) {
-    Write-Host "Output destination folder is invalid or not found: `"$OutputFolderPath`"" -ForegroundColor Red
-    exit 1
+    Stop-ScriptWithErrorMessage "Output destination folder is invalid or not found: `"$OutputFolderPath`""
 }
 
 # OutputFileName
 if ($OutputFileName.IndexOfAny([System.IO.Path]::GetInvalidFileNameChars()) -ne -1 -or
     $OutputFileName.Trim().Length -eq 0) {
-    Write-Host "Invalid file name: `"$OutputFileName`"" -ForegroundColor Red
-    exit 1
+    Stop-ScriptWithErrorMessage "Invalid file name: `"$OutputFileName`""
 }
 
 # OutputFileWidth
 if ($OutputFileWidth -le 0) {
-    Write-Host "Invalid output file width: `"$OutputFileWidth`"" -ForegroundColor Red
-    exit 1
+    Stop-ScriptWithErrorMessage "Invalid output file width: `"$OutputFileWidth`""
 }
 
 # OutputFileHeight
 if ($OutputFileHeight -le 0) {
-    Write-Host "Invalid output file height: `"$OutputFileHeight`"" -ForegroundColor Red
-    exit 1
+    Stop-ScriptWithErrorMessage "Invalid output file height: `"$OutputFileHeight`""
 }
 
 # OutputFileFramerate
 if ($OutputFileFramerate -le 0) {
-    Write-Host "Invalid output file framerate: `"$OutputFileFramerate`"" -ForegroundColor Red
-    exit 1
+    Stop-ScriptWithErrorMessage "Invalid output file framerate: `"$OutputFileFramerate`""
 }
 
 # ==============================================================================
@@ -86,8 +91,7 @@ if ($OutputFileFramerate -le 0) {
 # ==============================================================================
 $images = Get-ChildItem -Path $ImagesFolderPath | Where-Object { $_.Name -match $ImagesRegex } | Sort-Object Name
 if (-not $images) {
-    Write-Host "Output destination folder contains no matching images.`n  Path: `"$ImagesFolderPath`"`n  Pattern: `"$ImagesRegex`"" -ForegroundColor Red
-    exit 1
+    Stop-ScriptWithErrorMessage "Output destination folder contains no matching images.`n  Path: `"$ImagesFolderPath`"`n  Pattern: `"$ImagesRegex`""
 }
 
 if (-not $Y) {
@@ -112,7 +116,7 @@ if (-not $Y) {
     # Get confirmation
     $confirmation = Read-Host "Do you want to continue? (y/n):"
     if ($confirmation -ne 'y') {
-        Write-Host "`nAbandoning..." -ForegroundColor Red
+        Write-Host "`nAbandoning..." -ForegroundColor Green
         exit 0
     }
 }
@@ -144,8 +148,7 @@ try {
     exit 0
 }
 catch {
-    Write-Host "`nSomething went wrong:`n $_" -ForegroundColor Red
-    exit 1
+    Stop-ScriptWithErrorMessage "`nSomething went wrong:`n $_"
 }
 finally {
     if (Test-Path $tempFilePath) {
