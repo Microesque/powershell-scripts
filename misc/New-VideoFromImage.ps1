@@ -82,79 +82,48 @@ if ($OutputFileFramerate -le 0) {
 }
 
 # ==============================================================================
-# ================================== FUNCTIONS =================================
-# ==============================================================================
-function Stop-ScriptAfterKeyPress {
-    Write-Host "`nPress any key to exit."
-    $null = $Host.UI.RawUI.ReadKey("NoEcho, IncludeKeyDown")
-    exit
-}
-
-# ==============================================================================
 # =================================== SCRIPT ===================================
 # ==============================================================================
-# Verify paths
-Clear-Host
-if (-not (Test-Path $FfmpegExecutablePath)) {
-    Write-Host "ffmpeg executable not found at path `"$FfmpegExecutablePath`"." -ForegroundColor red
-    Stop-ScriptAfterKeyPress
-}
-if (-not (Test-Path $ImagesFolderPath)) {
-    Write-Host "Source folder not found at path `"$ImagesFolderPath`"." -ForegroundColor red
-    Stop-ScriptAfterKeyPress
-}
-if (-not (Test-Path $OutputFolderPath)) {
-    Write-Host "Destination folder not found at path `"$OutputFolderPath`"." -ForegroundColor red
-    Stop-ScriptAfterKeyPress
-}
-
-# Fetch the matching images
-$images = Get-ChildItem -Path $ImagesFolderPath |
-Where-Object { $_.Name -match $ImagesRegex } |
-Sort-Object Name
-
-# Exit if no image was found
+$images = Get-ChildItem -Path $ImagesFolderPath | Where-Object { $_.Name -match $ImagesRegex } | Sort-Object Name
 if (-not $images) {
-    Clear-Host
-    Write-Host "No files found at `"$ImagesFolderPath`" that match `"$ImagesRegex`"." -ForegroundColor red
-    Stop-ScriptAfterKeyPress
+    Write-Host "Output destination folder contains no matching images.`n  Path: `"$ImagesFolderPath`"`n  Pattern: `"$ImagesRegex`"" -ForegroundColor Red
+    exit 1
 }
 
-# List found images (shorten if nececessary)
-Write-Host "Files found ($($images.Count) total):" -ForegroundColor green
-$showLimit = 40
-if ($images.Count -gt $showLimit) {
-    for ($i = 0; $i -lt ($showLimit / 2); $i++) {
-        Write-Host "  $($images[$i].Name)" -ForegroundColor cyan
+if (-not $Y) {
+    # Print images found (shorten if too long)
+    Write-Host "Files found ($($images.Count) total):" -ForegroundColor Green
+    $showLimit = 40
+    if ($images.Count -gt $showLimit) {
+        for ($i = 0; $i -lt ($showLimit / 2); $i++) {
+            Write-Host "  $($images[$i].Name)" -ForegroundColor Cyan
+        }
+        Write-Host "  ..." -ForegroundColor cyan
+        for ($i = ($images.Count - ($showLimit / 2)); $i -lt $images.Count; $i++) {
+            Write-Host "  $($images[$i].Name)" -ForegroundColor Cyan
+        }
     }
-    Write-Host "  ..." -ForegroundColor cyan
-    for ($i = ($images.Count - ($showLimit / 2)); $i -lt $images.Count; $i++) {
-        Write-Host "  $($images[$i].Name)" -ForegroundColor cyan
+    else {
+        foreach ($image in $images) {
+            Write-Host "  $($image.Name)" -ForegroundColor Cyan
+        }
     }
-}
-else {
-    foreach ($image in $images) {
-        Write-Host "  $($image.Name)" -ForegroundColor cyan
-    }
-}
 
-# Get confirmation from the user to proceed or exit
-$confirmation = Read-Host "Do you want to continue? (y/n)"
-if ($confirmation -ne 'y') {
-    Clear-Host
-    Write-Host "Abandoning..." -ForegroundColor red
-    Stop-ScriptAfterKeyPress
+    # Get confirmation
+    $confirmation = Read-Host "Do you want to continue? (y/n):"
+    if ($confirmation -ne 'y') {
+        Write-Host "`nAbandoning..." -ForegroundColor Red
+        exit 0
+    }
 }
 
 try {
-    Clear-Host
-
     # Create/overwrite a temporary file for the ffmpeg concat demuxer
     $tempFilePath = Join-Path $ImagesFolderPath "_000temp.txt"
     $images | ForEach-Object { "file '$($_.FullName)'" } | Set-Content -Path $tempFilePath -Encoding ASCII
 
     # Run ffmpeg using the concat demuxer
-    Write-Host "Total number of images: $($images.Count)" -ForegroundColor green
+    Write-Host "Total number of images: $($images.Count)" -ForegroundColor Green
     $outputFilePath = Join-Path $OutputFolderPath $OutputFileName
     & $FfmpegExecutablePath `
         -y `
@@ -170,14 +139,13 @@ try {
 
     # Check if ffmpeg failed
     if ($LASTEXITCODE -eq 0) {
-        Write-Host "`nVideo file created at `"$outputFilePath`"." -ForegroundColor green
+        Write-Host "`nVideo file created at: `"$outputFilePath`"" -ForegroundColor Green
     }
-    Stop-ScriptAfterKeyPress
+    exit 0
 }
 catch {
-    Clear-Host
-    Write-Host "`nSomething went wrong:`n $_" -ForegroundColor red
-    Stop-ScriptAfterKeyPress
+    Write-Host "`nSomething went wrong:`n $_" -ForegroundColor Red
+    exit 1
 }
 finally {
     if (Test-Path $tempFilePath) {
