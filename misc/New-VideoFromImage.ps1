@@ -114,10 +114,15 @@ if (-not $Y) {
     }
 
     # Get confirmation
-    $confirmation = Read-Host "Do you want to continue? (y/n):"
-    if ($confirmation -ne 'y') {
-        Write-Host "`nAbandoning..." -ForegroundColor Green
-        exit 0
+    while (1) {
+        $confirmation = Read-Host "`nDo you want to continue? (y/n)"
+        if ($confirmation -eq 'y') {
+            break
+        }
+        elseif ($confirmation -eq 'n') {
+            Write-Host "`nAbandoning..." -ForegroundColor Green
+            exit 0
+        }
     }
 }
 
