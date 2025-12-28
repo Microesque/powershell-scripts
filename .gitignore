@@ -2,5 +2,5 @@
 .*
 !.gitignore
 
-# Ignore markdown notes
-*.md
+# Ignore TODO notes
+TODO.md
