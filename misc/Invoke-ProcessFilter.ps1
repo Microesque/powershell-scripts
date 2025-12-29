@@ -19,87 +19,8 @@ if (-not $CurrentPrincipal.IsInRole($Admin)) {
 }
 
 # ==============================================================================
-# ============================== Filter Functions ==============================
+# ============================== FILTER FUNCTIONS ==============================
 # ==============================================================================
-# Throws on fail with error message
-# returns nothing
-function Test-FilterHashtable {
-    param (
-        [Parameter(Mandatory = $true)]
-        [hashtable]$Filters
-    )
-
-    foreach ($Filter in $Filters.GetEnumerator()) {
-        $Key = [string]$Filter.Key
-        $Value = [string]$Filter.Value
-        if ($Key -match '[\\/:*?"<>|]') {
-            throw "Invalid key found. -> [$Key]"
-        }
-        if ($Value -match '[\\/:*?"<>|]') {
-            throw "Invalid value found. -> [$Value]"
-        }
-    }
-}
-
-# Throws on fail with error message
-# returns -> [$Lines, $Filters, $StartIndex, $EndIndex]
-function Test-FilterFile {
-    # Verify file path and read
-    if (-not (Test-Path $PSCommandPath)) {
-        throw "Invalid file path. -> [$PSCommandPath]"
-    }
-    $Lines = [System.Collections.ArrayList] (Get-Content $PSCommandPath)
-
-    # Find start index
-    $StartIndex = $Lines.IndexOf('$ProcessFilter = @{')
-    if ($StartIndex -eq -1) {
-        throw "Could not find a line that match [`$ProcessFilter = @{] (filter declaration start)."
-    }
-
-    # Find end index
-    $EndIndex = $Lines.IndexOf('}', ($StartIndex + 1))
-    if ($EndIndex -eq -1) {
-        throw "Could not find a line that match [}] (filter declaration end)."
-    }
-
-    # Extract and verify filters
-    $Filters = @{}
-    for ($i = ($StartIndex + 1); $i -lt $EndIndex; $i++) {
-        $Line = $Lines[$i]
-        if ($Line -notmatch '^    "(.*?)" = "(.*?)"$') {
-            throw "Invalid filter entry found. -> [$Line]"
-        }
-        $Filters[$Matches[1]] = $Matches[2]
-    }
-    Test-FilterHashtable $Filters
-
-    return @($Lines, $Filters, $StartIndex, $EndIndex)
-}
-
-# Throws on fail with error message
-function Get-Filters {
-    return (Test-FilterFile)[1]
-}
-
-# Throws on fail with error message
-# returns nothing
-function Set-Filters {
-    param (
-        [Parameter(Mandatory = $true)]
-        [hashtable]$Filters
-    )
-
-    # Test filters
-    Test-FilterHashtable $Filters
-    $Lines, $null, $StartIndex, $EndIndex = Test-FilterFile
-
-    # Update filters
-    $Lines.RemoveRange($StartIndex + 1, $EndIndex - $StartIndex - 1)
-    foreach ($Filter in $Filters.GetEnumerator()) {
-        $Lines.Insert($StartIndex + 1, "    `"$($Filter.Key)`" = `"$($Filter.Value)`"")
-    }
-    Set-Content $PSCommandPath $Lines -Force
-}
 
 # ==============================================================================
 # =============================== User Functions ===============================
@@ -158,7 +79,7 @@ function Show-Processes {
             Write-Host " $Suffix"   -ForegroundColor White
         }
         else {
-            Write-Host "    $Num-) $Id - $Name $Suffix" -ForegroundColor $Color
+            Write-Host "    $Num - ) $Id - $Name $Suffix" -ForegroundColor $Color
         }
     }
 }
@@ -334,7 +255,7 @@ while ($true) {
         "    (A) Show all processes (add to filters)`n" +
         "    (F) Show all filters (edit/remove filters)`n" +
         "    (E) Exit`n" +
-        "    (*) Press any other key to update:"
+        "    ( * ) Press any other key to update:"
     ) -ForegroundColor White
     
     $UserInput = $Host.UI.RawUI.ReadKey("NoEcho, IncludeKeyDown")
