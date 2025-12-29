@@ -4,3 +4,6 @@
 
 # Ignore TODO notes
 TODO.md
+
+# Ignore data files
+*.psd1
