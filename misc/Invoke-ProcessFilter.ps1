@@ -21,6 +21,37 @@ if (-not $CurrentPrincipal.IsInRole($Admin)) {
 # ==============================================================================
 # ============================== FILTER FUNCTIONS ==============================
 # ==============================================================================
+# Reads the data file with the same name in the current directory.
+# Data is supposed to be string-string key-value pair. Performs all validations.
+# Returns the hashtable
+function Get-FilterHashtable {
+    $path = [System.IO.Path]::ChangeExtension($PSCommandPath, '.psd1')
+
+    if (-not (Test-Path $path)) {
+        throw "Could not find data file at `"$path`"."
+    }
+
+    try {
+        $data = Import-PowerShellDataFile -Path $path
+    }
+    catch {
+        throw "Invalid PowerShell data file at `"$path`".`n$($_.Exception.Message)"
+    }
+
+    if ($null -eq $data -or $data -isnot [hashtable]) {
+        throw "Data file must be a hashtable at `"$path`"."
+    }
+
+    foreach ($entry in $data.GetEnumerator()) {
+        $key = $entry.Key
+        $value = $entry.Value
+        if ($key -isnot [string] -or [string]::IsNullOrWhiteSpace($key) -or $value -isnot [string]) {
+            throw "Data file contains an invalid entry at `"$path`".`n    Key: $key`n    Value: $value"
+        }
+    }
+
+    return $data
+}
 
 # ==============================================================================
 # =============================== User Functions ===============================
