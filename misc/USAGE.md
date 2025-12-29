@@ -1,6 +1,6 @@
 ### <u>New-VideoFromImage</u>
 `Description:`
->- Turns specified list of images into a video.
+>- Turns specified list of images into a video. Requires an ffmpeg executable.
 
 `Parameters:`
 ```powershell
