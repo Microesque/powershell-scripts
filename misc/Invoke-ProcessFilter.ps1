@@ -1,11 +1,20 @@
 
 # ==============================================================================
-# =============================== Self Elevation ===============================
+# =============================== SELF ELEVATION ===============================
 # ==============================================================================
 $CurrentPrincipal = New-Object Security.Principal.WindowsPrincipal $([Security.Principal.WindowsIdentity]::GetCurrent())
 $Admin = [Security.Principal.WindowsBuiltinRole]::Administrator
 if (-not $CurrentPrincipal.IsInRole($Admin)) {
-    Start-Process Powershell.exe -Verb RunAs -ArgumentList "-file `"$($myinvocation.MyCommand.Definition)`""
+    try {
+        Start-Process `
+            "$env:SystemRoot\System32\WindowsPowerShell\v1.0\powershell.exe" `
+            -Verb RunAs `
+            -ArgumentList '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', "`"$PSCommandPath`""
+    }
+    catch {
+        Write-Host "Self elevation failed:`n$_" -ForegroundColor Red
+        Pause
+    }
     exit
 }
 
@@ -16,7 +25,7 @@ if (-not $CurrentPrincipal.IsInRole($Admin)) {
 # returns nothing
 function Test-FilterHashtable {
     param (
-        [Parameter(Mandatory=$true)]
+        [Parameter(Mandatory = $true)]
         [hashtable]$Filters
     )
 
@@ -76,7 +85,7 @@ function Get-Filters {
 # returns nothing
 function Set-Filters {
     param (
-        [Parameter(Mandatory=$true)]
+        [Parameter(Mandatory = $true)]
         [hashtable]$Filters
     )
 
@@ -304,7 +313,7 @@ function Show-ProcessesAndAddFilter {
 # ==============================================================================
 # List of process names to filter (process name - description)
 $ProcessFilter = @{
-    "msedge" = "Microsoft edge"
+    "msedge"       = "Microsoft edge"
     "chromedriver" = "Chrome driver instance"
 }
 
