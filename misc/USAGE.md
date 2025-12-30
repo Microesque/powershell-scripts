@@ -36,6 +36,8 @@ param (
 `Notes:`
 >- Each image represents a single frame, so the framerate parameter directly determines the speed of the video.
 >- Images are fed by alphabetical order.
+>- Images are resized to fit the resolution specified without any stretching. Empty areas (if any) are filled with black bars.
+>- Basically lossless conversion besides the resizing.
 >- Originally made for creating fast-forward videos of game state screenshots like Rimworld.
 
 `Example:`
