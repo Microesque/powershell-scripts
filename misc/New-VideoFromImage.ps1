@@ -32,10 +32,10 @@ param (
 function Stop-ScriptWithErrorMessage {
     param (
         [Parameter(Mandatory = $true)]
-        $msg
+        $Msg
     )
 
-    Write-Host $msg -ForegroundColor Red
+    Write-Host $Msg -ForegroundColor Red
     exit 1
 }
 
