@@ -21,11 +21,47 @@ if (-not $CurrentPrincipal.IsInRole($Admin)) {
 # ==============================================================================
 # ============================== FILTER FUNCTIONS ==============================
 # ==============================================================================
+# Checks if the specified string is a valid file name.
+# Returns $true or $false
+function Test-IsValidFileName {
+    param (
+        [Parameter(Mandatory)]
+        [string] $String
+    )
+
+    if ([string]::IsNullOrWhiteSpace($String)) {
+        return $false
+    }
+    
+    if ($String.Length -gt 255) {
+        return $false
+    }
+
+    if ($String.IndexOfAny([System.IO.Path]::GetInvalidFileNameChars()) -ne -1) {
+        return $false
+    }
+
+    if ($String -match "^[\. ]|[\. ]$") {
+        return $false
+    }
+
+    $reserved = @(
+        'CON', 'PRN', 'AUX', 'NUL',
+        'COM1', 'COM2', 'COM3', 'COM4', 'COM5', 'COM6', 'COM7', 'COM8', 'COM9',
+        'LPT1', 'LPT2', 'LPT3', 'LPT4', 'LPT5', 'LPT6', 'LPT7', 'LPT8', 'LPT9'
+    )
+    if ($reserved -contains [System.IO.Path]::GetFileNameWithoutExtension($String).ToUpper()) {
+        return $false
+    }
+
+    return $true
+}
+
 # Reads the data file with the same name in the current directory.
 # Data is supposed to be string-string key-value pair. Performs all validations.
 # Returns the hashtable
 function Get-FilterHashtable {
-    $path = [System.IO.Path]::ChangeExtension($PSCommandPath, '.psd1')
+    $path = [System.IO.Path]::ChangeExtension($PSCommandPath, ".psd1")
 
     if (-not (Test-Path $path)) {
         throw "Could not find data file at `"$path`"."
@@ -45,8 +81,14 @@ function Get-FilterHashtable {
     foreach ($entry in $data.GetEnumerator()) {
         $key = $entry.Key
         $value = $entry.Value
-        if ($key -isnot [string] -or [string]::IsNullOrWhiteSpace($key) -or $value -isnot [string]) {
-            throw "Data file contains an invalid entry at `"$path`".`n    Key: $key`n    Value: $value"
+        if ($key -isnot [string] -or
+            [string]::IsNullOrWhiteSpace($key) -or
+            -not (Test-IsValidFileName $key)) {
+            throw "Data file contains an invalid key at `"$path`".`n    Key: $key`n    Value: $value"
+        }
+        if ($value -isnot [string] -or
+            -not (Test-IsValidFileName $value)) {
+            throw "Data file contains an invalid value at `"$path`".`n    Key: $key`n    Value: $value"
         }
     }
 
