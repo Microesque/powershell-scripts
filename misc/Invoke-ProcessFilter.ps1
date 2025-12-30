@@ -68,6 +68,10 @@ function Get-FilterHashtable {
     }
 
     try {
+        $content = Get-Content -Path $path -Raw
+        if ($content -notmatch '\S') {
+            return @{}
+        }
         $data = Import-PowerShellDataFile -Path $path
     }
     catch {
