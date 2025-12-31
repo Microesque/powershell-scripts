@@ -186,11 +186,14 @@ function Remove-FilterEntryFromFile {
 
     $data = Get-FilterHashtableFromFile
 
+    if (-not (Test-IsValidFilterKey $Key)) {
+        throw "Invalid key -> `"$Key`""
+    }
     if (-not $data.ContainsKey($Key)) {
-        throw "Cannot remove entry. Key '$Key' does not exist in the filter."
+        throw "No entry was found with the specified key -> `"$Key`""
     }
 
-    $data.Remove($Key) | Out-Null
+    $null = $data.Remove($Key)
     Set-FilterHashtableToFile -Data $data
 }
 
