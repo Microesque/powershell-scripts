@@ -151,7 +151,48 @@ function Set-FilterHashtableToFile {
         -Force
 }
 
-# need add and edit, then update the entire script
+# Adds the specified filter entry to the file.
+# Entry is supposed to be string-string key-value pair. Performs all validations.
+# Throws if something goes wrong.
+function Add-FilterEntryToFile {
+    param (
+        [Parameter(Mandatory)]
+        [string] $Key,
+
+        [Parameter(Mandatory)]
+        [string] $Value
+    )
+
+    if (-not (Test-IsValidFilterKey $Key)) {
+        throw "Invalid key -> `"$Key`""
+    }
+    if (-not (Test-IsValidFilterValue $Value)) {
+        throw "Invalid value -> `"$Value`""
+    }
+
+    $data = Get-FilterHashtableFromFile
+    $data[$Key] = $Value
+    Set-FilterHashtableToFile -Data $data
+}
+
+# Removes the specified filter entry from the file.
+# Entry is supposed to be string-string key-value pair. Performs all validations.
+# Throws if something goes wrong.
+function Remove-FilterEntryFromFile {
+    param (
+        [Parameter(Mandatory)]
+        [string] $Key
+    )
+
+    $data = Get-FilterHashtableFromFile
+
+    if (-not $data.ContainsKey($Key)) {
+        throw "Cannot remove entry. Key '$Key' does not exist in the filter."
+    }
+
+    $data.Remove($Key) | Out-Null
+    Set-FilterHashtableToFile -Data $data
+}
 
 # ==============================================================================
 # =============================== User Functions ===============================
