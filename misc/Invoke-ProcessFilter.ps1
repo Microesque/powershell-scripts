@@ -22,7 +22,7 @@ if (-not $CurrentPrincipal.IsInRole($Admin)) {
 # ============================== FILTER FUNCTIONS ==============================
 # ==============================================================================
 # Checks if the specified string is a valid file name.
-# Returns $true or $false
+# Returns $true or $false.
 function Test-IsValidFileName {
     param (
         [Parameter(Mandatory)]
@@ -58,7 +58,7 @@ function Test-IsValidFileName {
 }
 
 # Checks if the specified key is a valid filter key.
-# Returns $true or $false
+# Returns $true or $false.
 function Test-IsValidFilterKey {
     param (
         [Parameter(Mandatory)]
@@ -74,7 +74,7 @@ function Test-IsValidFilterKey {
 }
 
 # Checks if the specified value is a valid filter value.
-# Returns $true or $false
+# Returns $true or $false.
 function Test-IsValidFilterValue {
     param (
         [Parameter(Mandatory)]
@@ -90,9 +90,9 @@ function Test-IsValidFilterValue {
 
 # Reads the data file with the same name in the current directory.
 # Data is supposed to be string-string key-value pair. Performs all validations.
-# Throws if something goes wrong
-# Returns the hashtable
-function Get-FilterHashtable {
+# Throws if something goes wrong.
+# Returns the hashtable (empty files return an empty hashtable).
+function Get-FilterHashtableFromFile {
     $path = [System.IO.Path]::ChangeExtension($PSCommandPath, ".psd1")
 
     if (-not (Test-Path $path)) {
@@ -131,8 +131,8 @@ function Get-FilterHashtable {
 # Writes the specified hashtable to the file with the same name in the current directory.
 # Data is supposed to be string-string key-value pair.
 # Performs no validations. Perform your validations on the add/edit functions of the hashtable.
-# Throws if the write fails goes wrong
-function Set-FilterHashtable {
+# Throws if the write fails.
+function Set-FilterHashtableToFile {
     param (
         [Parameter(Mandatory)]
         [hashtable] $Data
