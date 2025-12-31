@@ -57,8 +57,40 @@ function Test-IsValidFileName {
     return $true
 }
 
+# Checks if the specified key is a valid filter key.
+# Returns $true or $false
+function Test-IsValidFilterKey {
+    param (
+        [Parameter(Mandatory)]
+        [string] $Key
+    )
+
+    if ($Key -isnot [string] -or
+        [string]::IsNullOrWhiteSpace($Key) -or
+        -not (Test-IsValidFileName $Key)) {
+        return $false
+    }
+    return $true
+}
+
+# Checks if the specified value is a valid filter value.
+# Returns $true or $false
+function Test-IsValidFilterValue {
+    param (
+        [Parameter(Mandatory)]
+        [string] $Value
+    )
+
+    if ($Value -isnot [string] -or
+        -not (Test-IsValidFileName $Value)) {
+        return $false
+    }
+    return $true
+}
+
 # Reads the data file with the same name in the current directory.
 # Data is supposed to be string-string key-value pair. Performs all validations.
+# Throws if something goes wrong
 # Returns the hashtable
 function Get-FilterHashtable {
     $path = [System.IO.Path]::ChangeExtension($PSCommandPath, ".psd1")
@@ -85,13 +117,10 @@ function Get-FilterHashtable {
     foreach ($entry in $data.GetEnumerator()) {
         $key = $entry.Key
         $value = $entry.Value
-        if ($key -isnot [string] -or
-            [string]::IsNullOrWhiteSpace($key) -or
-            -not (Test-IsValidFileName $key)) {
+        if (-not (Test-IsValidFilterKey $key)) {
             throw "Data file contains an invalid key at `"$path`".`n    Key: $key`n    Value: $value"
         }
-        if ($value -isnot [string] -or
-            -not (Test-IsValidFileName $value)) {
+        if (-not (Test-IsValidFilterValue $value)) {
             throw "Data file contains an invalid value at `"$path`".`n    Key: $key`n    Value: $value"
         }
     }
