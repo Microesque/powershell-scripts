@@ -128,6 +128,31 @@ function Get-FilterHashtable {
     return $data
 }
 
+# Writes the specified hashtable to the file with the same name in the current directory.
+# Data is supposed to be string-string key-value pair.
+# Performs no validations. Perform your validations on the add/edit functions of the hashtable.
+# Throws if the write fails goes wrong
+function Set-FilterHashtable {
+    param (
+        [Parameter(Mandatory)]
+        [hashtable] $Data
+    )
+
+    $lines = '@{'
+    foreach ($entry in $Data.GetEnumerator()) {
+        $lines += "    `"$($entry.Key)`" = `"$($entry.Value)`""
+    }
+    $lines += '}'
+
+    Set-Content `
+        -Path ([System.IO.Path]::ChangeExtension($PSCommandPath, '.psd1')) `
+        -Value $lines `
+        -Encoding utf8BOM `
+        -Force
+}
+
+# need add and edit, then update the entire script
+
 # ==============================================================================
 # =============================== User Functions ===============================
 # ==============================================================================
