@@ -21,9 +21,9 @@ elseif (-not (Test-ServerIp $server)) {
 $username = (Read-Host "Enter SQL username").Trim()
 $password = (Read-Host "Enter SQL password").Trim()
 
-$expRate = (Read-Host "Enter the new happy hour exp multiplier [0.0-50.0]").Trim()
-if (-not [double]::TryParse($expRate, [ref]$expRate) -or $expRate -lt 0.0 -or $expRate -gt 50.0) {
-    Stop-ScriptWithErrorMessage "Invalid multiplier value. Multiplier has to be a number between [0.0 - 50.0]."
+$expRate = (Read-Host "Enter the new happy hour exp multiplier [0.0-100.0]").Trim()
+if (-not [double]::TryParse($expRate, [ref]$expRate) -or $expRate -lt 0.0 -or $expRate -gt 100.0) {
+    Stop-ScriptWithErrorMessage "Invalid multiplier value. Multiplier has to be a number between [0.0 - 100.0]."
 }
 
 # ==============================================================================
