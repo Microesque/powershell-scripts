@@ -9,4 +9,13 @@ function Stop-ScriptWithErrorMessage {
     exit 1
 }
 
-Export-ModuleMember -Function Stop-ScriptWithErrorMessage
+# Very basic validation for IPv4 addresses. Doesn't check for localhost.
+function Test-ServerIP {
+    param (
+        [Parameter(Mandatory = $true)]
+        $Ip
+    )
+    $Ip -match "^(?:[0-9]{1,3}\.){3}[0-9]{1,3}$"
+}
+
+Export-ModuleMember -Function Stop-ScriptWithErrorMessage, Test-ServerIP

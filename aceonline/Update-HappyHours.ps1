@@ -14,7 +14,7 @@ $server = (Read-Host "Enter server ip (leave empty for 'localhost')").Trim()
 if ([string]::IsNullOrEmpty($server)) {
     $server = "localhost"
 }
-elseif ($server -notmatch "^(?:[0-9]{1,3}\.){3}[0-9]{1,3}$") {
+elseif (-not (Test-ServerIp $server)) {
     Stop-ScriptWithErrorMessage "Invalid server IP: $server"
 }
 
