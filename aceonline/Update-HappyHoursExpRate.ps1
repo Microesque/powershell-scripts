@@ -21,8 +21,8 @@ elseif (-not (Test-ServerIp $server)) {
 $username = (Read-Host "Enter SQL username").Trim()
 $password = (Read-Host "Enter SQL password").Trim()
 
-$happyHour = (Read-Host "Enter the new happy hour multiplier [0.0-10.0]").Trim()
-if (-not [double]::TryParse($happyHour, [ref]$happyHour) -or $happyHour -lt 0.0 -or $happyHour -gt 10.0) {
+$expRate = (Read-Host "Enter the new happy hour multiplier [0.0-10.0]").Trim()
+if (-not [double]::TryParse($expRate, [ref]$expRate) -or $expRate -lt 0.0 -or $expRate -gt 10.0) {
     Stop-ScriptWithErrorMessage "Invalid happy hour value. Happy hour multiplier has to be a number between [0.0 - 10.0]."
 }
 
@@ -32,7 +32,7 @@ if (-not [double]::TryParse($happyHour, [ref]$happyHour) -or $happyHour -lt 0.0 
 $connectionString = "Server=$server;Database=master;User ID=$username;Password=$password;"
 $query = @"
 UPDATE [atum2_db_account].[dbo].[ti_HappyHourEvent]
-SET EXPRate = $happyHour
+SET EXPRate = $expRate
 WHERE UniqueNumber > 100;
 "@
 
@@ -44,4 +44,4 @@ catch {
 }
 
 Write-Host "Rows affected: $rowsAffected" -ForegroundColor Green
-Write-Host "Success! Happy hours is set to $($happyHour * 100)%. (Requires server restart!)" -ForegroundColor Green
+Write-Host "Success! Happy hours exp rate is set to $($expRate * 100)%. (Requires server restart!)" -ForegroundColor Green
