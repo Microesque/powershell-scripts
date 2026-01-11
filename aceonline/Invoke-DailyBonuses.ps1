@@ -10,7 +10,12 @@ Import-Module (Join-Path $ModulesPath "SqlExpressUtils.psm1") -Force
 # ==============================================================================
 # Get user input
 Clear-Host
-$server, $username, $password = Read-ServerAndCredentials
+try {
+    $server, $username, $password = Read-ServerAndCredentials
+}
+catch {
+    Stop-ScriptWithErrorMessage $_.Exception.Message
+}
 $table = "atum2_db_account.dbo.td_Account"
 $accountName = "abi"
 $whereCondition = "AccountName = '$accountName'"
