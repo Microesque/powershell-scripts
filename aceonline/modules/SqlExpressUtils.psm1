@@ -119,9 +119,6 @@ function Set-TableColumnValues {
     try {
         $connection.Open()
         $result = $command.ExecuteNonQuery()
-        if ($result -eq 0) {
-            throw "Number of rows affected was 0."
-        }
     }
     catch {
         throw "$($_.Exception.Message)`nQuery was: $query"
