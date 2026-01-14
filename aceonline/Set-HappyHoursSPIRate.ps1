@@ -16,9 +16,9 @@ try {
 catch {
     Stop-ScriptWithErrorMessage $_.Exception.Message
 }
-$value = (Read-Host "Enter the new happy hour spi multiplier [0.0-100.0]").Trim()
-if (-not [double]::TryParse($value, [ref]$value) -or $value -lt 0.0 -or $value -gt 100.0) {
-    Stop-ScriptWithErrorMessage "Invalid multiplier value. Multiplier has to be a number between [0.0 - 100.0]."
+$value = (Read-Host "Enter the new happy hour spi multiplier").Trim()
+if (-not [double]::TryParse($value, [ref]$value) -or $value -lt 0.0) {
+    Stop-ScriptWithErrorMessage "Invalid multiplier value. -> $value"
 }
 $table = "atum2_db_account.dbo.ti_HappyHourEvent"
 $whereCondition = "UniqueNumber > 100"
