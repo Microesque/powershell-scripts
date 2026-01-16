@@ -20,25 +20,48 @@ $accountName = (Read-Host "Enter game account name").Trim()
 if ([string]::IsNullOrEmpty($accountName)) {
     Stop-ScriptWithErrorMessage "Account name empty!"
 }
-$value = (Read-Host "Cash points value to set").Trim()
+$value = (Read-Host "Cash points value to set (prefix with + or - to add or subtract instead)").Trim()
 if ([string]::IsNullOrEmpty($value)) {
     Stop-ScriptWithErrorMessage "Value empty!"
 }
-elseif ($value -notmatch '^\d+$') {
-    Stop-ScriptWithErrorMessage "Value needs to be an integer! -> $value"
+elseif ($value -notmatch "^[+-]?\d+$") {
+    Stop-ScriptWithErrorMessage "Value needs to be an integer, optionally prefixed with + or - -> $value"
 }
 $table = "atum2_db_account.dbo.td_Account"
 $whereCondition = "AccountName = '$accountName'"
 
-# Set new value
 try {
+    # Get the current value
+    $currentCashPoint = Get-TableColumnValue `
+        -Server $server `
+        -Username $username `
+        -Password $password `
+        -Table $table `
+        -Column "CashPoint" `
+        -WhereCondition $whereCondition
+    if ($currentCashPoint -eq $null) {
+        Stop-ScriptWithErrorMessage "Account name was not found! -> $accountName"
+    }
+
+    # Calculate the value to set
+    if ($value.StartsWith('+') -or $value.StartsWith('-')) {
+        $valueInt = [int]$currentCashPoint + [int]$value
+        if ($valueInt -lt 0) {
+            $valueInt = 0
+        }
+    }
+    else {
+        $valueInt = [int]$value
+    }
+
+    #Set the new value
     $columnsAffected = Set-TableColumnValues `
         -Server $server `
         -Username $username `
         -Password $password `
         -Table $table `
         -Column "CashPoint" `
-        -Value "$value" `
+        -Value "$valueInt" `
         -WhereCondition $whereCondition
 }
 catch {
@@ -46,8 +69,6 @@ catch {
 }
 
 # Update user and exit
-if ($columnsAffected -eq 0) {
-    Stop-ScriptWithErrorMessage "Account name was not found! -> $accountName"
-}
-Write-Host "Account name `"$accountName`" cash points set to: $value" -ForegroundColor Green
+Write-Host "Account name `"$accountName`" cash points was: $currentCashPoint" -ForegroundColor Green
+Write-Host "Account name `"$accountName`" cash points set to: $valueInt" -ForegroundColor Green
 Stop-ScriptWithSuccessMessage "Script successful."
