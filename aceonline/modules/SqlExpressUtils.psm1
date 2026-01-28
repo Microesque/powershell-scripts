@@ -19,7 +19,9 @@ function Read-ServerAndCredentials {
         throw "Empty SQL username!"
     }
 
-    $password = (Read-Host "Enter SQL password").Trim()
+    $password = Read-Host "Enter SQL password" -AsSecureString
+    $password = [Runtime.InteropServices.Marshal]::PtrToStringAuto([Runtime.InteropServices.Marshal]::SecureStringToBSTR($password)).Trim()
+    
     if ([string]::IsNullOrEmpty($password)) {
         throw "Empty SQL password!"
     }
