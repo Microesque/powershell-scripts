@@ -40,3 +40,14 @@
 >- The prices for the shops as well as which gear's tab they appear in are all properties of the items. Refer to [ti_ItemInfo](#atum2_db_accountdboti_iteminfo).
 
 ---
+
+### atum2_db_account.dbo.ti_OverlapItem
+>- Determines the tab in which the cash shop items appear as well as their final prices.
+>- Consists of 4 columns:
+>    - `ItemNum` -> The item. Refer to [ti_ItemInfo](#atum2_db_accountdboti_iteminfo).
+>    - `CashPrice` -> Cash price of the item. Overwrites the price specified in the [ti_ItemInfo](#atum2_db_accountdboti_iteminfo).
+>    - `Tab` -> Tab in which the item will appear. [1-6]
+>    - `ItemAttribute` -> Likely allows overwriting the attribute of the item. Unless you know what you're doing, just copy the `ItemAttribute` column of the [ti_ItemInfo](#atum2_db_accountdboti_iteminfo).
+>- Adding items to the [cash shop](#atum2_db_accountdboti_shop). also requires adding a corresponding entry here.
+
+---
