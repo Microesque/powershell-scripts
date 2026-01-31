@@ -1,6 +1,6 @@
-# Queries the user for a server ip, username, and password.
+# Queries the user for a server ip/dns, username, and password.
 # Inputs are validated and trimmed. Server value can be 'localhost'.
-# Throws if validation goes wrong.
+# Throws if any validation goes wrong.
 # Returns -> @(serverIP, $username, $password)
 function Read-ServerAndCredentials {
     [CmdletBinding()]
@@ -10,8 +10,8 @@ function Read-ServerAndCredentials {
     if ([string]::IsNullOrEmpty($server)) {
         $server = "localhost"
     }
-    elseif ($server -notmatch "^(?:[0-9]{1,3}\.){3}[0-9]{1,3}$") {
-        throw "Invalid SQL server IP: $server"
+    if (-not (Test-NetConnection -ComputerName $server -Port 1433 -InformationLevel Quiet -WarningAction SilentlyContinue 6>$null)) {
+        throw "Cannot reach SQL Server at [$server] on port 1433!"
     }
 
     $username = (Read-Host "Enter SQL username").Trim()
@@ -21,7 +21,6 @@ function Read-ServerAndCredentials {
 
     $password = Read-Host "Enter SQL password" -AsSecureString
     $password = [Runtime.InteropServices.Marshal]::PtrToStringAuto([Runtime.InteropServices.Marshal]::SecureStringToBSTR($password)).Trim()
-    
     if ([string]::IsNullOrEmpty($password)) {
         throw "Empty SQL password!"
     }
@@ -55,7 +54,7 @@ function Get-TableColumnValue {
         [string]$WhereCondition = $null
     )
 
-    $connectionString = "Server=$Server;Database=master;User ID=$Username;Password=$Password;"
+    $connectionString = "Server=$Server,1433;Database=master;User ID=$Username;Password=$Password;"
     $query = "SELECT TOP (1) $Column FROM $Table"
     if (-not [string]::IsNullOrEmpty($WhereCondition)) {
         $query += " WHERE $WhereCondition"
@@ -70,7 +69,7 @@ function Get-TableColumnValue {
         $result = $command.ExecuteScalar()
     }
     catch {
-        throw "$($_.Exception.Message)`nQuery was: $query"
+        throw "$($_.Exception.Message)`n-----`nServer: $Server`nUsername: $Username`nQuery: $query"
     }
     finally {
         $connection.Close() # Silently fails if already closed
@@ -108,7 +107,7 @@ function Set-TableColumnValues {
         [string]$WhereCondition = $null
     )
 
-    $connectionString = "Server=$Server;Database=master;User ID=$Username;Password=$Password;"
+    $connectionString = "Server=$Server,1433;Database=master;User ID=$Username;Password=$Password;"
     $query = "UPDATE $Table SET $Column = $Value"
     if (-not [string]::IsNullOrEmpty($WhereCondition)) {
         $query += " WHERE $WhereCondition"
@@ -123,7 +122,7 @@ function Set-TableColumnValues {
         $result = $command.ExecuteNonQuery()
     }
     catch {
-        throw "$($_.Exception.Message)`nQuery was: $query"
+        throw "$($_.Exception.Message)`n-----`nServer: $Server`nUsername: $Username`nQuery: $query"
     }
     finally {
         $connection.Close() # Silently fails if already closed
