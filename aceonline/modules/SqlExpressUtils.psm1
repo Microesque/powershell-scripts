@@ -6,7 +6,7 @@ function Read-ServerAndCredentials {
     [CmdletBinding()]
     param()
 
-    $server = (Read-Host "Enter SQL server ip (leave empty for 'localhost')").Trim()
+    $server = (Read-Host "Enter SQL server address (leave empty for 'localhost')").Trim()
     if ([string]::IsNullOrEmpty($server)) {
         $server = "localhost"
     }
@@ -26,6 +26,29 @@ function Read-ServerAndCredentials {
     }
 
     return @($server, $username, $password)
+}
+
+# Same as Read-ServerAndCredentials but meant for non-interactive parameter checking.
+# Throws if any validation goes wrong.
+function Assert-ServerAndCredentials {
+    [CmdletBinding()]
+    param (
+        [string]$Server,
+        [string]$Username,
+        [string]$Password
+    )
+    if ([string]::IsNullOrEmpty($Server)) {
+        throw "Empty server address!"
+    }
+    if (-not (Test-NetConnection -ComputerName $Server -Port 1433 -InformationLevel Quiet -WarningAction SilentlyContinue 6>$null)) {
+        throw "Cannot reach SQL Server at [$server] on port 1433!"
+    }
+    if ([string]::IsNullOrEmpty($Username)) {
+        throw "Empty SQL username!"
+    }
+    if ([string]::IsNullOrEmpty($Password)) {
+        throw "Empty SQL password!"
+    }
 }
 
 # Fetches and returns a single value from the specified table, column, and condition.
