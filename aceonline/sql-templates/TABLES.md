@@ -51,3 +51,24 @@
 >- Adding items to the [cash shop](#atum2_db_accountdboti_shop). also requires adding a corresponding entry here.
 
 ---
+
+### atum2_db_account.dbo.ti_HappyHourEvent
+>- Determines the happy hour times and bonuses as well as which faction and level players they apply to.
+>- Happy hour bonuses are written as direct multipliers even though they are shown as percentile increases in game. For example, setting the `EXPRate` to `25` will increase the xp gain by `2500%` in game.
+>- The first `UniqueNumber` column is an identity primary key. Do not include it when inserting into the table.
+>- **The information below was derived through trial and error. I didn't inspect the game's source code itself, so take them with a grain of salt!**
+>- Seems what should've been implemented in two different tables is implemented on this single table, so depending on the value of the `DayOfWeek` column, some values are ignored.
+>- There are mainly 5 columns that determine if and when the happy hour will occur:
+>    - `ServerGroupID` -> Server ID to appy happy hour to. Set to `0` for all servers.
+>    - `DayOfWeek` -> Values between `0–6` correspond to the days `sunday–monday` to which the bonuses will apply. A value of `7` instead defines when the happy hour itself is active.
+>    - `StartTime` -> Depending on `DayOfWeek` value, either represents the happy hour start time or the happy hour active start date.
+>    - `EndTime` -> Depending on `DayOfWeek` value, either represents the happy hour end time or the happy hour active end date.
+>    - `InfluenceType` -> Specifies which faction the entry applies to:
+>       - `1` -> Normal influence (whatever that means)
+>       - `2` -> BCU influence
+>       - `4` -> ANI influence
+>       - `255` -> All influence
+>- The main mechanic to understand is this: when `DayOfWeek` is set to `7`, the row defines the date range during which the happy hour will be active for a given `InfluenceType`. The bonus values such as `EXPRate` or `SPIRate` for these rows are completely ignored. The active period is determined by `StartTime` and `EndTime`. If no such row exists for an `InfluenceType`, or if the current date falls outside this range, the happy hour will not be active.
+>- After activating the happy hour with a row as explained above, the bonuses must be configured separately for each day of the week. When `DayOfWeek` is set to a value between `0–6` (representing `sunday–monday`), the date component of `StartTime` and `EndTime` is ignored and only the time component is used. This time window defines the active period for that specific day, and the bonus multiplier columns are applied to the corresponding `InfluenceType` during that period.
+
+---
