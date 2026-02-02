@@ -76,7 +76,7 @@ $columnsAffected = Set-TableColumnValues `
     -Password $Password `
     -Table $table `
     -Column $column `
-    -Value "$Value" `
+    -Value $Value `
     -WhereCondition $whereCondition
 
 if ($columnsAffected -eq 0) {
@@ -84,8 +84,8 @@ if ($columnsAffected -eq 0) {
 }
 
 $exitMsg = @"
-Happy hours SPI was set to $($oldValue * 100)%.
-Happy hours SPI rate is set to $($Value * 100)%.
+Happy hours SPI was set to $([float]$oldValue * 100)%.
+Happy hours SPI rate is set to $([float]$Value * 100)%.
 (Requires server restart!)
 Script successful!
 "@

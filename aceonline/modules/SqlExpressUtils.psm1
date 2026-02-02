@@ -55,7 +55,7 @@ function Assert-TrimStrIsValidServerAddress {
 }
 
 # Checks if the trimmed version of the specified value can be cast into a positive float.
-# Returns the trimmed and cast float value.
+# Returns the trimmed string.
 # Throws on fail.
 function Assert-TrimStrIsPositiveFloat {
     [CmdletBinding()]
@@ -72,7 +72,7 @@ function Assert-TrimStrIsPositiveFloat {
         throw "Invalid $Name value [$Value]. Needs to be a positive float."
     }
 
-    return $floatValue
+    return $Value
 }
 
 # Queries the user for a server ip/dns, username, and password.
