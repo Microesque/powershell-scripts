@@ -1,4 +1,25 @@
 # ==============================================================================
+# =================================== PARAMS ===================================
+# ==============================================================================
+[CmdletBinding()]
+param (
+    [string]$Server,
+    [string]$Username,
+    [string]$Password,
+    [string]$Value,
+
+    [switch]$NonInteractive
+)
+
+if ($NonInteractive) {
+    foreach ($name in "Server", "Username", "Password", "Value") {
+        if (-not $PSBoundParameters.ContainsKey($name)) {
+            throw "Non-interactive execution missing $name parameter."
+        }
+    }
+}
+
+# ==============================================================================
 # =================================== IMPORTS ==================================
 # ==============================================================================
 $ModulesPath = Join-Path $PSScriptRoot "modules"
@@ -6,41 +27,67 @@ Import-Module (Join-Path $ModulesPath "CommonUtils.psm1") -Force
 Import-Module (Join-Path $ModulesPath "SqlExpressUtils.psm1") -Force
 
 # ==============================================================================
+# =========================== PARAM/INPUT VALIDATION ===========================
+# ==============================================================================
+Write-Host ""
+
+# $Server
+if (-not $NonInteractive) {
+    $Server = (Read-Host "Enter SQL server address")
+}
+$Server = Assert-TrimStrIsValidServerAddress $Server -Name "Server"
+
+# $Username
+if (-not $NonInteractive) {
+    $Username = (Read-Host "Enter SQL username")
+}
+$Username = Assert-TrimStrIsNotNullOrEmpty $Username -Name "Username"
+
+# $Password
+if (-not $NonInteractive) {
+    $Password = (Read-SecureStringAsString "Enter SQL password")
+}
+$Password = Assert-TrimStrIsNotNullOrEmpty $Password -Name "Password"
+
+# $Value
+if (-not $NonInteractive) {
+    $Value = (Read-Host "Enter the new happy hour EXP multiplier")
+}
+$Value = Assert-TrimStrIsPositiveFloat $Value -Name "EXP multiplier"
+
+# ==============================================================================
 # =================================== SCRIPT ===================================
 # ==============================================================================
-# Get user input
-Clear-Host
-try {
-    $server, $username, $password = Read-ServerAndCredentials
-}
-catch {
-    Stop-ScriptWithErrorMessage $_.Exception.Message
-}
-$value = (Read-Host "Enter the new happy hour exp multiplier").Trim()
-if (-not [double]::TryParse($value, [ref]$value) -or $value -lt 0.0) {
-    Stop-ScriptWithErrorMessage "Invalid multiplier value. -> $value"
-}
 $table = "atum2_db_account.dbo.ti_HappyHourEvent"
-$whereCondition = "UniqueNumber > 100"
+$column = "EXPRate"
+$whereCondition = "DayOfWeek BETWEEN 0 AND 6"
 
-# Set new value
-try {
-    $columnsAffected = Set-TableColumnValues `
-        -Server $server `
-        -Username $username `
-        -Password $password `
-        -Table $table `
-        -Column "EXPRate" `
-        -Value "$value" `
-        -WhereCondition $whereCondition
-    if ($columnsAffected -eq 0) {
-        throw "Number of rows affected was 0!"
-    }
-}
-catch {
-    Stop-ScriptWithErrorMessage "Something went wrong during SQL execution:`n$($_.Exception.Message)"
+$oldValue = Get-TableColumnValue `
+    -Server $Server `
+    -Username $Username `
+    -Password $Password `
+    -Table $table `
+    -Column $column `
+    -WhereCondition $whereCondition
+
+$columnsAffected = Set-TableColumnValues `
+    -Server $Server `
+    -Username $Username `
+    -Password $Password `
+    -Table $table `
+    -Column $column `
+    -Value "$Value" `
+    -WhereCondition $whereCondition
+
+if ($columnsAffected -eq 0) {
+    throw "Number of rows affected was 0!"
 }
 
-# Update user and exit
-Write-Host "Happy hours exp rate is set to $($value * 100)%. (Requires server restart!)" -ForegroundColor Green
-Stop-ScriptWithSuccessMessage "Script successful."
+$exitMsg = @"
+Happy hours EXP was set to $($oldValue * 100)%.
+Happy hours EXP rate is set to $($Value * 100)%.
+(Requires server restart!)
+Script successful!
+"@
+Write-Host $exitMsg -ForegroundColor Green
+Exit 0
