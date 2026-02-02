@@ -30,97 +30,79 @@ Import-Module (Join-Path $ModulesPath "SqlExpressUtils.psm1") -Force
 # ==============================================================================
 # =========================== PARAM/INPUT VALIDATION ===========================
 # ==============================================================================
-if ($NonInteractive) {
-    $Server = $Server.Trim()
-    $Username = $Username.Trim()
-    $Password = $Password.Trim()
-    $AccountName = $AccountName.Trim()
-    $Value = $Value.Trim()
+Write-Host ""
 
-    try {
-        Assert-ServerAndCredentials $Server $Username $Password
-    }
-    catch {
-        Stop-ScriptWithErrorMessage $_.Exception.Message
-    }
-
-    if ([string]::IsNullOrEmpty($AccountName)) {
-        Stop-ScriptWithErrorMessage "Account name empty!"
-    }
-
-    if ([string]::IsNullOrEmpty($Value)) {
-        Stop-ScriptWithErrorMessage "Value empty!"
-    }
-    elseif ($Value -notmatch "^[+-]?\d+$") {
-        Stop-ScriptWithErrorMessage "Value needs to be an integer, optionally prefixed with + or - -> $Value"
-    }
+# $Server
+if (-not $NonInteractive) {
+    $Server = (Read-Host "Enter SQL server address")
 }
-else {
-    try {
-        $Server, $Username, $Password = Read-ServerAndCredentials
-    }
-    catch {
-        Stop-ScriptWithErrorMessage $_.Exception.Message
-    }
+$Server = Assert-TrimStrIsValidServerAddress $Server -Name "Server"
 
-    $AccountName = (Read-Host "Enter game account name").Trim()
-    if ([string]::IsNullOrEmpty($AccountName)) {
-        Stop-ScriptWithErrorMessage "Account name empty!"
-    }
-
-    $Value = (Read-Host "War points value to set (prefix with + or - to add or subtract instead)").Trim()
-    if ([string]::IsNullOrEmpty($Value)) {
-        Stop-ScriptWithErrorMessage "Value empty!"
-    }
-    elseif ($Value -notmatch "^[+-]?\d+$") {
-        Stop-ScriptWithErrorMessage "Value needs to be an integer, optionally prefixed with + or - -> $Value"
-    }
+# $Username
+if (-not $NonInteractive) {
+    $Username = (Read-Host "Enter SQL username")
 }
+$Username = Assert-TrimStrIsNotNullOrEmpty $Username -Name "Username"
+
+# $Password
+if (-not $NonInteractive) {
+    $Password = (Read-SecureStringAsString "Enter SQL password")
+}
+$Password = Assert-TrimStrIsNotNullOrEmpty $Password -Name "Password"
+
+# $AccountName
+if (-not $NonInteractive) {
+    $AccountName = (Read-Host "Enter account name")
+}
+$AccountName = Assert-TrimStrIsNotNullOrEmpty $AccountName -Name "Account name"
+
+# $Value
+if (-not $NonInteractive) {
+    $Value = (Read-Host "War points value to set (prefix with + or - to add or subtract instead)")
+}
+$Value = Assert-TrimStrIsPrefixedInt $Value -Name "War points"
 
 # ==============================================================================
 # =================================== SCRIPT ===================================
 # ==============================================================================
 $table = "atum2_db_account.dbo.td_Account"
+$column = "WarPoint"
 $whereCondition = "AccountName = '$AccountName'"
 
-try {
-    # Get the current value
-    $currentWarPoint = Get-TableColumnValue `
-        -Server $Server `
-        -Username $Username `
-        -Password $Password `
-        -Table $table `
-        -Column "WarPoint" `
-        -WhereCondition $whereCondition
-    if ($currentWarPoint -eq $null) {
-        Stop-ScriptWithErrorMessage "Account name was not found! -> $AccountName"
-    }
+$oldValue = Get-TableColumnValue `
+    -Server $Server `
+    -Username $Username `
+    -Password $Password `
+    -Table $table `
+    -Column $column `
+    -WhereCondition $whereCondition
+if ($null -eq $oldValue) {
+    throw "Account name [$AccountName] was not found!"
+}
 
-    # Calculate the value to set
-    if ($Value.StartsWith('+') -or $Value.StartsWith('-')) {
-        $valueInt = [int]$currentWarPoint + [int]$Value
-        if ($valueInt -lt 0) {
-            $valueInt = 0
-        }
+if ($Value.StartsWith('+') -or $Value.StartsWith('-')) {
+    $valueInt = [int]$oldValue + [int]$Value
+    if ($valueInt -lt 0) {
+        $valueInt = 0
     }
-    else {
-        $valueInt = [int]$Value
-    }
+}
+else {
+    $valueInt = [int]$Value
+}
     
-    #Set the new value
-    $columnsAffected = Set-TableColumnValues `
-        -Server $Server `
-        -Username $Username `
-        -Password $Password `
-        -Table $table `
-        -Column "WarPoint" `
-        -Value "$valueInt" `
-        -WhereCondition $whereCondition
-}
-catch {
-    Stop-ScriptWithErrorMessage "Something went wrong during SQL execution:`n$($_.Exception.Message)"
-}
+$columnsAffected = Set-TableColumnValues `
+    -Server $Server `
+    -Username $Username `
+    -Password $Password `
+    -Table $table `
+    -Column $column `
+    -Value "$valueInt" `
+    -WhereCondition $whereCondition
 
-Write-Host "Account name `"$AccountName`" war points was: $currentWarPoint" -ForegroundColor Green
-Write-Host "Account name `"$AccountName`" war points set to: $valueInt" -ForegroundColor Green
-Stop-ScriptWithSuccessMessage "Script successful."
+$exitMsg = @"
+War points for [$AccountName] was: $oldValue
+War points for [$AccountName] set to: $valueInt
+Script successful.
+"@
+Write-Host $exitMsg -ForegroundColor Green
+Exit 0

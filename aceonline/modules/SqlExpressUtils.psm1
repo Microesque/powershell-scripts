@@ -75,6 +75,26 @@ function Assert-TrimStrIsPositiveFloat {
     return $Value
 }
 
+# Checks if the trimmed version of the specified value can be cast into an optionally prefixed int.
+# Returns the trimmed string.
+# Throws on fail.
+function Assert-TrimStrIsPrefixedInt {
+    [CmdletBinding()]
+    param (
+        [Parameter(Mandatory = $true)]
+        $Value,
+        
+        [string]$Name = "_variable_"
+    )
+
+    $Value = Assert-TrimStrIsNotNullOrEmpty $Value -Name $Name
+    if ($Value -notmatch "^[+-]?\d+$") {
+        throw "Invalid $Name value [$Value]. Needs to be an integer, optionally prefixed with + or -."
+    }
+
+    return $Value
+}
+
 # Queries the user for a server ip/dns, username, and password.
 # Inputs are validated and trimmed. Server value can be 'localhost'.
 # Throws if any validation goes wrong.
@@ -130,6 +150,7 @@ function Assert-ServerAndCredentials {
 
 # Fetches and returns a single value from the specified table, column, and condition.
 # If the condition returns multiple rows and/or columns, the top left most value will be returned.
+# If the condition returns no rows, $null will be returned.
 # Throws if something goes wrong.
 # Returns the fetched value.
 function Get-TableColumnValue {
