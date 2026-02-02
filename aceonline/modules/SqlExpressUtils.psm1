@@ -95,59 +95,6 @@ function Assert-TrimStrIsPrefixedInt {
     return $Value
 }
 
-# Queries the user for a server ip/dns, username, and password.
-# Inputs are validated and trimmed. Server value can be 'localhost'.
-# Throws if any validation goes wrong.
-# Returns -> @(serverIP, $username, $password)
-function Read-ServerAndCredentials {
-    [CmdletBinding()]
-    param()
-
-    $server = (Read-Host "Enter SQL server address (leave empty for 'localhost')").Trim()
-    if ([string]::IsNullOrEmpty($server)) {
-        $server = "localhost"
-    }
-    if (-not (Test-NetConnection -ComputerName $server -Port 1433 -InformationLevel Quiet -WarningAction SilentlyContinue 6>$null)) {
-        throw "Cannot reach SQL Server at [$server] on port 1433!"
-    }
-
-    $username = (Read-Host "Enter SQL username").Trim()
-    if ([string]::IsNullOrEmpty($username)) {
-        throw "Empty SQL username!"
-    }
-
-    $password = Read-Host "Enter SQL password" -AsSecureString
-    $password = [Runtime.InteropServices.Marshal]::PtrToStringAuto([Runtime.InteropServices.Marshal]::SecureStringToBSTR($password)).Trim()
-    if ([string]::IsNullOrEmpty($password)) {
-        throw "Empty SQL password!"
-    }
-
-    return @($server, $username, $password)
-}
-
-# Same as Read-ServerAndCredentials but meant for non-interactive parameter checking.
-# Throws if any validation goes wrong.
-function Assert-ServerAndCredentials {
-    [CmdletBinding()]
-    param (
-        [string]$Server,
-        [string]$Username,
-        [string]$Password
-    )
-    if ([string]::IsNullOrEmpty($Server)) {
-        throw "Empty server address!"
-    }
-    if (-not (Test-NetConnection -ComputerName $Server -Port 1433 -InformationLevel Quiet -WarningAction SilentlyContinue 6>$null)) {
-        throw "Cannot reach SQL Server at [$server] on port 1433!"
-    }
-    if ([string]::IsNullOrEmpty($Username)) {
-        throw "Empty SQL username!"
-    }
-    if ([string]::IsNullOrEmpty($Password)) {
-        throw "Empty SQL password!"
-    }
-}
-
 # Fetches and returns a single value from the specified table, column, and condition.
 # If the condition returns multiple rows and/or columns, the top left most value will be returned.
 # If the condition returns no rows, $null will be returned.
