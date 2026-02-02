@@ -45,8 +45,7 @@ $Username = Assert-TrimStrIsNotNullOrEmpty $Username -Name "Username"
 
 # $Password
 if (-not $NonInteractive) {
-    $Password = (Read-Host "Enter SQL password" -AsSecureString)
-    $Password = [Runtime.InteropServices.Marshal]::PtrToStringAuto([Runtime.InteropServices.Marshal]::SecureStringToBSTR($password))
+    $Password = (Read-SecureStringAsString "Enter SQL password")
 }
 $Password = Assert-TrimStrIsNotNullOrEmpty $Password -Name "Password"
 
@@ -86,7 +85,8 @@ if ($columnsAffected -eq 0) {
 
 $exitMsg = @"
 Happy hours SPI was set to $($oldValue * 100)%.
-Happy hours SPI rate is set to $($Value * 100)%. (Requires server restart!)
+Happy hours SPI rate is set to $($Value * 100)%.
+(Requires server restart!)
 Script successful!
 "@
 Write-Host $exitMsg -ForegroundColor Green
