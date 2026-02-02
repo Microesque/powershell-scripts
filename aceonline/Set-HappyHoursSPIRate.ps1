@@ -60,26 +60,34 @@ $Value = Assert-TrimStrIsPositiveFloat $Value -Name "SPI multiplier"
 # =================================== SCRIPT ===================================
 # ==============================================================================
 $table = "atum2_db_account.dbo.ti_HappyHourEvent"
-$whereCondition = "UniqueNumber > 100"
+$column = "SPIRate"
+$whereCondition = "DayOfWeek BETWEEN 0 AND 6"
 
-# Set new value
-try {
-    $columnsAffected = Set-TableColumnValues `
-        -Server $Server `
-        -Username $Username `
-        -Password $Password `
-        -Table $table `
-        -Column "SPIRate" `
-        -Value "$Value" `
-        -WhereCondition $whereCondition
-    if ($columnsAffected -eq 0) {
-        throw "Number of rows affected was 0!"
-    }
-}
-catch {
-    Stop-ScriptWithErrorMessage "Something went wrong during SQL execution:`n$($_.Exception.Message)"
+$oldValue = Get-TableColumnValue `
+    -Server $Server `
+    -Username $Username `
+    -Password $Password `
+    -Table $table `
+    -Column $column `
+    -WhereCondition $whereCondition
+
+$columnsAffected = Set-TableColumnValues `
+    -Server $Server `
+    -Username $Username `
+    -Password $Password `
+    -Table $table `
+    -Column $column `
+    -Value "$Value" `
+    -WhereCondition $whereCondition
+
+if ($columnsAffected -eq 0) {
+    throw "Number of rows affected was 0!"
 }
 
-# Update user and exit
-Write-Host "Happy hours spi rate is set to $($Value * 100)%. (Requires server restart!)" -ForegroundColor Green
-Stop-ScriptWithSuccessMessage "Script successful."
+$exitMsg = @"
+Happy hours SPI was set to $($oldValue * 100)%.
+Happy hours SPI rate is set to $($Value * 100)%. (Requires server restart!)
+Script successful!
+"@
+Write-Host $exitMsg -ForegroundColor Green
+Exit 0
