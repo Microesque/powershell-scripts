@@ -1,3 +1,80 @@
+# Checks if the trimmed version of the specified string is null or empty.
+# Returns the trimmed string.
+# Throws on fail.
+function Assert-TrimStrIsNotNullOrEmpty {
+    [CmdletBinding()]
+    param (
+        [Parameter(Mandatory = $true)]
+        $Str,
+        
+        [string]$Name = "_variable_"
+    )
+
+    if ($null -eq $Str) {
+        throw "$Name is null!"
+    }
+    if ($Str -isnot [string]) {
+        throw "$Name is not a string!"
+    }
+
+    $Str = $Str.Trim()
+    if ([string]::IsNullOrEmpty($Str)) {
+        throw "$Name is empty!"
+    }
+
+    return $Str
+}
+
+# Checks if the trimmed version of the specified server address is reachable on port 1433.
+# Returns the trimmed address string.
+# Throws on fail.
+function Assert-TrimStrIsValidServerAddress {
+    [CmdletBinding()]
+    param (
+        [Parameter(Mandatory = $true)]
+        $Server,
+        
+        [string]$Name = "_variable_"
+    )
+
+    $Server = Assert-TrimStrIsNotNullOrEmpty $Server -Name $Name
+    
+    # if (-not (Test-NetConnection -ComputerName $Server -Port 1433 -InformationLevel Quiet -WarningAction SilentlyContinue 6>$null)) {
+    #     throw "Cannot reach SQL Server at [$Server] on port 1433!"
+    # }
+    $tcpClient = New-Object System.Net.Sockets.TcpClient
+    $connect = $tcpClient.BeginConnect($Server, 1433, $null, $null)
+    $wait = $connect.AsyncWaitHandle.WaitOne(2000)
+    if (-not $wait -or -not $tcpClient.Connected) {
+        $tcpClient.Close()
+        throw "Cannot reach SQL Server at [$Server] on port 1433!"
+    }
+    $tcpClient.Close()
+
+    return $Server
+}
+
+# Checks if the trimmed version of the specified value can be cast into a positive float.
+# Returns the trimmed and cast float value.
+# Throws on fail.
+function Assert-TrimStrIsPositiveFloat {
+    [CmdletBinding()]
+    param (
+        [Parameter(Mandatory = $true)]
+        $Value,
+        
+        [string]$Name = "_variable_"
+    )
+
+    $Value = Assert-TrimStrIsNotNullOrEmpty $Value -Name $Name
+    $floatValue = 0.0
+    if (-not [double]::TryParse($Value, [ref]$floatValue) -or $floatValue -lt 0.0) {
+        throw "Invalid $Name value [$Value]. Needs to be a positive float."
+    }
+
+    return $floatValue
+}
+
 # Queries the user for a server ip/dns, username, and password.
 # Inputs are validated and trimmed. Server value can be 'localhost'.
 # Throws if any validation goes wrong.
