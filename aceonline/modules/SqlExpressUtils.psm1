@@ -11,15 +11,15 @@ function Assert-TrimStrIsNotNullOrEmpty {
     )
 
     if ($null -eq $Str) {
-        throw "$Name is null!"
+        throw "[$Name] is null!"
     }
     if ($Str -isnot [string]) {
-        throw "$Name is not a string!"
+        throw "[$Name] is not a string!"
     }
 
     $Str = $Str.Trim()
     if ([string]::IsNullOrEmpty($Str)) {
-        throw "$Name is empty!"
+        throw "[$Name] is empty!"
     }
 
     return $Str
@@ -69,7 +69,7 @@ function Assert-TrimStrIsPositiveFloat {
     $Value = Assert-TrimStrIsNotNullOrEmpty $Value -Name $Name
     $floatValue = 0.0
     if (-not [double]::TryParse($Value, [ref]$floatValue) -or $floatValue -lt 0.0) {
-        throw "Invalid $Name value [$Value]. Needs to be a positive float."
+        throw "Invalid [$Name] value [$Value]. Needs to be a positive float."
     }
 
     return $Value
@@ -89,7 +89,7 @@ function Assert-TrimStrIsPrefixedInt {
 
     $Value = Assert-TrimStrIsNotNullOrEmpty $Value -Name $Name
     if ($Value -notmatch "^[+-]?\d+$") {
-        throw "Invalid $Name value [$Value]. Needs to be an integer, optionally prefixed with + or -."
+        throw "Invalid [$Name] value [$Value]. Needs to be an integer, optionally prefixed with + or -."
     }
 
     return $Value
