@@ -3,9 +3,9 @@
 # ==============================================================================
 [CmdletBinding()]
 param (
-    [string]$Server,
-    [string]$Username,
-    [string]$Password,
+    [string]$SQLServer,
+    [string]$SQLUsername,
+    [string]$SQLPassword,
     [string]$Value,
 
     [switch]$NonInteractive
@@ -31,23 +31,23 @@ Import-Module (Join-Path $ModulesPath "SqlExpressUtils.psm1") -Force
 # ==============================================================================
 Write-Host ""
 
-# $Server
+# $SQLServer
 if (-not $NonInteractive) {
-    $Server = (Read-Host "Enter SQL server address")
+    $SQLServer = (Read-Host "Enter SQL server address")
 }
-$Server = Assert-TrimStrIsValidServerAddress $Server -Name "Server"
+$SQLServer = Assert-TrimStrIsValidServerAddress $SQLServer -Name "SQL server"
 
-# $Username
+# $SQLUsername
 if (-not $NonInteractive) {
-    $Username = (Read-Host "Enter SQL username")
+    $SQLUsername = (Read-Host "Enter SQL username")
 }
-$Username = Assert-TrimStrIsNotNullOrEmpty $Username -Name "Username"
+$SQLUsername = Assert-TrimStrIsNotNullOrEmpty $SQLUsername -Name "SQL username"
 
-# $Password
+# $SQLPassword
 if (-not $NonInteractive) {
-    $Password = (Read-SecureStringAsString "Enter SQL password")
+    $SQLPassword = (Read-SecureStringAsString "Enter SQL password")
 }
-$Password = Assert-TrimStrIsNotNullOrEmpty $Password -Name "Password"
+$SQLPassword = Assert-TrimStrIsNotNullOrEmpty $SQLPassword -Name "SQL password"
 
 # $Value
 if (-not $NonInteractive) {
@@ -63,17 +63,17 @@ $column = "SPIRate"
 $whereCondition = "DayOfWeek BETWEEN 0 AND 6"
 
 $oldValue = Get-TableColumnValue `
-    -Server $Server `
-    -Username $Username `
-    -Password $Password `
+    -Server $SQLServer `
+    -Username $SQLUsername `
+    -Password $SQLPassword `
     -Table $table `
     -Column $column `
     -WhereCondition $whereCondition
 
 $columnsAffected = Set-TableColumnValues `
-    -Server $Server `
-    -Username $Username `
-    -Password $Password `
+    -Server $SQLServer `
+    -Username $SQLUsername `
+    -Password $SQLPassword `
     -Table $table `
     -Column $column `
     -Value $Value `

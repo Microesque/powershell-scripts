@@ -3,9 +3,9 @@
 # ==============================================================================
 [CmdletBinding()]
 param (
-    [string]$Server,
-    [string]$Username,
-    [string]$Password,
+    [string]$SQLServer,
+    [string]$SQLUsername,
+    [string]$SQLPassword,
     [string]$CharacterName,
 
     [switch]$NonInteractive
@@ -31,23 +31,23 @@ Import-Module (Join-Path $ModulesPath "SqlExpressUtils.psm1") -Force
 # ==============================================================================
 Write-Host ""
 
-# $Server
+# $SQLServer
 if (-not $NonInteractive) {
-    $Server = (Read-Host "Enter SQL server address")
+    $SQLServer = (Read-Host "Enter SQL server address")
 }
-$Server = Assert-TrimStrIsValidServerAddress $Server -Name "Server"
+$SQLServer = Assert-TrimStrIsValidServerAddress $SQLServer -Name "SQL server"
 
-# $Username
+# $SQLUsername
 if (-not $NonInteractive) {
-    $Username = (Read-Host "Enter SQL username")
+    $SQLUsername = (Read-Host "Enter SQL username")
 }
-$Username = Assert-TrimStrIsNotNullOrEmpty $Username -Name "Username"
+$SQLUsername = Assert-TrimStrIsNotNullOrEmpty $SQLUsername -Name "SQL username"
 
-# $Password
+# $SQLPassword
 if (-not $NonInteractive) {
-    $Password = (Read-SecureStringAsString "Enter SQL password")
+    $SQLPassword = (Read-SecureStringAsString "Enter SQL password")
 }
-$Password = Assert-TrimStrIsNotNullOrEmpty $Password -Name "Password"
+$SQLPassword = Assert-TrimStrIsNotNullOrEmpty $SQLPassword -Name "SQL password"
 
 # $CharacterName
 if (-not $NonInteractive) {
@@ -59,9 +59,9 @@ $CharacterName = Assert-TrimStrIsNotNullOrEmpty $CharacterName -Name "Character 
 # =================================== SCRIPT ===================================
 # ==============================================================================
 $characterUniqueNumber = Get-TableColumnValue `
-    -Server $Server `
-    -Username $Username `
-    -Password $Password `
+    -Server $SQLServer `
+    -Username $SQLUsername `
+    -Password $SQLPassword `
     -Table "atum2_db_1.dbo.td_Character" `
     -Column "UniqueNumber" `
     -WhereCondition "CharacterName = '$CharacterName'"
@@ -71,9 +71,9 @@ if ($null -eq $characterUniqueNumber) {
 }
 
 $columnsAffected = Set-TableColumnValues `
-    -Server $Server `
-    -Username $Username `
-    -Password $Password `
+    -Server $SQLServer `
+    -Username $SQLUsername `
+    -Password $SQLPassword `
     -Table "atum2_db_1.dbo.td_CharacterQuest" `
     -Column "QuestState" `
     -Value "2" `
