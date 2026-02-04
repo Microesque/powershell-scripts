@@ -7,13 +7,13 @@ function Get-TableColumnValue {
     [CmdletBinding()]
     param (
         [Parameter(Mandatory)]
-        [string]$Server,
+        [string]$SQLServer,
 
         [Parameter(Mandatory)]
-        [string]$Username,
+        [string]$SQLUsername,
 
         [Parameter(Mandatory)]
-        [string]$Password,
+        [string]$SQLPassword,
 
         [Parameter(Mandatory)]
         [string]$Table,
@@ -25,7 +25,7 @@ function Get-TableColumnValue {
         [string]$WhereCondition = $null
     )
 
-    $connectionString = "Server=$Server,1433;Database=master;User ID=$Username;Password=$Password;"
+    $connectionString = "Server=$SQLServer,1433;Database=master;User ID=$SQLUsername;Password=$SQLPassword;"
     $query = "SELECT TOP (1) $Column FROM $Table"
     if (-not [string]::IsNullOrEmpty($WhereCondition)) {
         $query += " WHERE $WhereCondition"
@@ -40,7 +40,7 @@ function Get-TableColumnValue {
         $result = $command.ExecuteScalar()
     }
     catch {
-        throw "$($_.Exception.Message)`n-----`nServer: $Server`nUsername: $Username`nQuery: $query"
+        throw "$($_.Exception.Message)`n-----`nServer: $SQLServer`nUsername: $SQLUsername`nQuery: $query"
     }
     finally {
         $connection.Close() # Silently fails if already closed
@@ -57,13 +57,13 @@ function Set-TableColumnValues {
     [CmdletBinding()]
     param (
         [Parameter(Mandatory)]
-        [string]$Server,
+        [string]$SQLServer,
 
         [Parameter(Mandatory)]
-        [string]$Username,
+        [string]$SQLUsername,
 
         [Parameter(Mandatory)]
-        [string]$Password,
+        [string]$SQLPassword,
 
         [Parameter(Mandatory)]
         [string]$Table,
@@ -78,7 +78,7 @@ function Set-TableColumnValues {
         [string]$WhereCondition = $null
     )
 
-    $connectionString = "Server=$Server,1433;Database=master;User ID=$Username;Password=$Password;"
+    $connectionString = "Server=$SQLServer,1433;Database=master;User ID=$SQLUsername;Password=$SQLPassword;"
     $query = "UPDATE $Table SET $Column = $Value"
     if (-not [string]::IsNullOrEmpty($WhereCondition)) {
         $query += " WHERE $WhereCondition"
@@ -93,7 +93,7 @@ function Set-TableColumnValues {
         $result = $command.ExecuteNonQuery()
     }
     catch {
-        throw "$($_.Exception.Message)`n-----`nServer: $Server`nUsername: $Username`nQuery: $query"
+        throw "$($_.Exception.Message)`n-----`nServer: $SQLServer`nUsername: $SQLUsername`nQuery: $query"
     }
     finally {
         $connection.Close() # Silently fails if already closed
@@ -109,13 +109,13 @@ function Add-RowIntoTable {
     [CmdletBinding()]
     param (
         [Parameter(Mandatory)]
-        [string]$Server,
+        [string]$SQLServer,
 
         [Parameter(Mandatory)]
-        [string]$Username,
+        [string]$SQLUsername,
 
         [Parameter(Mandatory)]
-        [string]$Password,
+        [string]$SQLPassword,
 
         [Parameter(Mandatory)]
         [string]$Table,
@@ -131,7 +131,7 @@ function Add-RowIntoTable {
         throw "Number of [ColumnNames = $($ColumnNames.Count)] and [ColumnValues = $($ColumnValues.Count)] must match!"
     }
 
-    $connectionString = "Server=$Server,1433;Database=master;User ID=$Username;Password=$Password;"
+    $connectionString = "Server=$SQLServer,1433;Database=master;User ID=$SQLUsername;Password=$SQLPassword;"
     $query = "INSERT INTO $Table ($($ColumnNames -join ', ')) VALUES ($($ColumnValues -join ', '))"
 
     $connection = New-Object System.Data.SqlClient.SqlConnection $connectionString
@@ -143,7 +143,7 @@ function Add-RowIntoTable {
         $result = $command.ExecuteNonQuery()
     }
     catch {
-        throw "$($_.Exception.Message)`n-----`nServer: $Server`nUsername: $Username`nQuery: $query"
+        throw "$($_.Exception.Message)`n-----`nServer: $SQLServer`nUsername: $SQLUsername`nQuery: $query"
     }
     finally {
         $connection.Close() # Silently fails if already closed

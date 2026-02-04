@@ -59,9 +59,9 @@ $CharacterName = Assert-TrimStrIsNotNullOrEmpty $CharacterName -Name "Character 
 # =================================== SCRIPT ===================================
 # ==============================================================================
 $characterUniqueNumber = Get-TableColumnValue `
-    -Server $SQLServer `
-    -Username $SQLUsername `
-    -Password $SQLPassword `
+    -SQLServer $SQLServer `
+    -SQLUsername $SQLUsername `
+    -SQLPassword $SQLPassword `
     -Table "atum2_db_1.dbo.td_Character" `
     -Column "UniqueNumber" `
     -WhereCondition "CharacterName = '$CharacterName'"
@@ -71,9 +71,9 @@ if ($null -eq $characterUniqueNumber) {
 }
 
 $columnsAffected = Set-TableColumnValues `
-    -Server $SQLServer `
-    -Username $SQLUsername `
-    -Password $SQLPassword `
+    -SQLServer $SQLServer `
+    -SQLUsername $SQLUsername `
+    -SQLPassword $SQLPassword `
     -Table "atum2_db_1.dbo.td_CharacterQuest" `
     -Column "QuestState" `
     -Value "2" `

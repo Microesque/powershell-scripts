@@ -77,9 +77,9 @@ $AccountType = Assert-TrimStrIsValidAccountType $AccountType -Name "Account type
 # =================================== SCRIPT ===================================
 # ==============================================================================
 $accountEntry = Get-TableColumnValue `
-    -Server $SQLServer `
-    -Username $SQLUsername `
-    -Password $SQLPassword `
+    -SQLServer $SQLServer `
+    -SQLUsername $SQLUsername `
+    -SQLPassword $SQLPassword `
     -Table "atum2_db_account.dbo.td_Account" `
     -Column "AccountName" `
     -WhereCondition "AccountName = '$AccountName'"
@@ -148,9 +148,9 @@ $columnValues = @(
 )
 
 Add-RowIntoTable `
-    -Server $SQLServer `
-    -Username $SQLUsername `
-    -Password $SQLPassword `
+    -SQLServer $SQLServer `
+    -SQLUsername $SQLUsername `
+    -SQLPassword $SQLPassword `
     -Table "atum2_db_account.dbo.td_Account" `
     -ColumnNames $columnNames `
     -ColumnValues $columnValues

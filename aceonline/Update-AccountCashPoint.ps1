@@ -70,9 +70,9 @@ $column = "CashPoint"
 $whereCondition = "AccountName = '$AccountName'"
 
 $oldValue = Get-TableColumnValue `
-    -Server $SQLServer `
-    -Username $SQLUsername `
-    -Password $SQLPassword `
+    -SQLServer $SQLServer `
+    -SQLUsername $SQLUsername `
+    -SQLPassword $SQLPassword `
     -Table $table `
     -Column $column `
     -WhereCondition $whereCondition
@@ -91,9 +91,9 @@ else {
 }
     
 $columnsAffected = Set-TableColumnValues `
-    -Server $SQLServer `
-    -Username $SQLUsername `
-    -Password $SQLPassword `
+    -SQLServer $SQLServer `
+    -SQLUsername $SQLUsername `
+    -SQLPassword $SQLPassword `
     -Table $table `
     -Column $column `
     -Value "$valueInt" `

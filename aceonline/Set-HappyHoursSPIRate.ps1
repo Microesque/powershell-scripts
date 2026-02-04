@@ -63,17 +63,17 @@ $column = "SPIRate"
 $whereCondition = "DayOfWeek BETWEEN 0 AND 6"
 
 $oldValue = Get-TableColumnValue `
-    -Server $SQLServer `
-    -Username $SQLUsername `
-    -Password $SQLPassword `
+    -SQLServer $SQLServer `
+    -SQLUsername $SQLUsername `
+    -SQLPassword $SQLPassword `
     -Table $table `
     -Column $column `
     -WhereCondition $whereCondition
 
 $columnsAffected = Set-TableColumnValues `
-    -Server $SQLServer `
-    -Username $SQLUsername `
-    -Password $SQLPassword `
+    -SQLServer $SQLServer `
+    -SQLUsername $SQLUsername `
+    -SQLPassword $SQLPassword `
     -Table $table `
     -Column $column `
     -Value $Value `
