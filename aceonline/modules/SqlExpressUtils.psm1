@@ -102,4 +102,54 @@ function Set-TableColumnValues {
     return $result
 }
 
+# Inserts a row to the specified table using the specified column names and values.
+# Throws if something goes wrong.
+# Returns the number of rows affected.
+function Add-RowIntoTable {
+    [CmdletBinding()]
+    param (
+        [Parameter(Mandatory)]
+        [string]$Server,
+
+        [Parameter(Mandatory)]
+        [string]$Username,
+
+        [Parameter(Mandatory)]
+        [string]$Password,
+
+        [Parameter(Mandatory)]
+        [string]$Table,
+
+        [Parameter(Mandatory)]
+        [string[]]$ColumnNames,
+
+        [Parameter(Mandatory)]
+        [string[]]$ColumnValues
+    )
+
+    if ($ColumnNames.Count -ne $ColumnValues.Count) {
+        throw "Number of [ColumnNames = $($ColumnNames.Count)] and [ColumnValues = $($ColumnValues.Count)] must match!"
+    }
+
+    $connectionString = "Server=$Server,1433;Database=master;User ID=$Username;Password=$Password;"
+    $query = "INSERT INTO $Table ($($ColumnNames -join ', ')) VALUES ($($ColumnValues -join ', '))"
+
+    $connection = New-Object System.Data.SqlClient.SqlConnection $connectionString
+    $command = $connection.CreateCommand()
+    $command.CommandText = $query
+
+    try {
+        $connection.Open()
+        $result = $command.ExecuteNonQuery()
+    }
+    catch {
+        throw "$($_.Exception.Message)`n-----`nServer: $Server`nUsername: $Username`nQuery: $query"
+    }
+    finally {
+        $connection.Close() # Silently fails if already closed
+    }
+
+    return $result
+}
+
 Export-ModuleMember -Function *

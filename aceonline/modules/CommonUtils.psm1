@@ -106,4 +106,26 @@ function Assert-TrimStrIsPrefixedInt {
     return $Value
 }
 
+# Checks if the trimmed version of the specified value is a valid account type (0, 128, 256).
+# Returns the trimmed string.
+# Throws on fail.
+function Assert-TrimStrIsValidAccountType {
+    [CmdletBinding()]
+    param (
+        [Parameter(Mandatory = $true)]
+        $Value,
+        
+        [string]$Name = "_variable_"
+    )
+
+    $Value = Assert-TrimStrIsNotNullOrEmpty $Value -Name $Name
+    if ($AccountType -ne "0" -and
+        $AccountType -ne "128" -and
+        $AccountType -ne "256") {
+        throw "Invalid [$Name]. Needs to be one of [0, 128, 256]."
+    }
+
+    return $Value
+}
+
 Export-ModuleMember -Function *
