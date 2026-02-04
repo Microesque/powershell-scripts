@@ -14,9 +14,10 @@ param (
 )
 
 if ($NonInteractive) {
-    foreach ($name in "Server", "Username", "Password", "AccountName", "AccountPassword", "AccountType") {
-        if (-not $PSBoundParameters.ContainsKey($name)) {
-            throw "Non-interactive execution missing $name parameter."
+    $ScriptParams = $MyInvocation.MyCommand.ScriptBlock.Ast.ParamBlock.Parameters | ForEach-Object { $_.Name.VariablePath.UserPath }
+    foreach ($param in $ScriptParams) {
+        if (-not $PSBoundParameters.ContainsKey($param)) {
+            throw "Non-interactive execution missing [$param] parameter."
         }
     }
 }
