@@ -11,6 +11,7 @@
 >- For weapons, `MultiTarget` column determines how many targets can be selected at a time. For normal weapons besides `Snipe` this is typically `1`. This can be set to `0` to make a weapon unable to hit anything.
 >- The weapon shot by `P.E.D` is also an item that can be edited with the `ItemNum` of `7047795`.
 >- Changing certain columns requires the updateing of `omi.tex` file for both the server and the cliend. The changes will apply without the update, but won't be shown correctly on the ui of the game. Columns such as `CashPrice` and `ReqMinLevel` require the update.
+>- `ItemAttribute` also determines stuff like the requirements to buy it, or weather you can enchant a weapon or not. For example, you can change the `ItemAttribute` of a unique weapon to make it enchantable.
 
 ---
 
