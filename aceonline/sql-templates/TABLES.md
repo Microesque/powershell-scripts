@@ -73,3 +73,22 @@
 >- After activating the happy hour with a row as explained above, the bonuses must be configured separately for each day of the week. When `DayOfWeek` is set to a value between `0–6` (representing `sunday–monday`), the date component of `StartTime` and `EndTime` is ignored and only the time component is used. This time window defines the active period for that specific day, and the bonus multiplier columns are applied to the corresponding `InfluenceType` during that period.
 
 ---
+
+### atum2_db_account.dbo.ti_MonsterItem
+>- Determines the item drops from monsters and bosses including infinity field ones.
+>- `MonsterUniqueNumber` can be joined with the `UniqueNumber` of [ti_Monster](#atum2_db_accountdboti_monster) to get the corresponding monster name and info.
+>- `ItemNum` can be joined with the `ItemNum` of [ti_ItemInfo](#atum2_db_accountdboti_iteminfo) to get the corresponding item name and info.
+>- Each entry is rolled separately, so you could get every single listed item from a single mob, or you may get absolutely nothing.
+>- Duplicate entries are not allowed. Certain item can only be dropped by a certain mob one time.
+>- Probability doesn't seem to be out of 100. If you want something to drop 100% of the time, just set it to a high number like `100,000,000`. I think `1,000,000` or so represents 100% but I didn't test really.
+>- `MinCount` and `MaxCount` determine the range in which the number of items will drop.
+>- I do not know what the `DropType` column is for. Though, 99.99% of the items have it set to 0.
+>- If you want to adjust the infinity field boss drops:
+
+| Map                 | Boss Name DB       | MonsterUniqueNumber |
+| ------------------- | ------------------ | ------------------- |
+| Kreacian Holy Lands | \yUltima Kreacia\y | 2091200             |
+| The Hydrogen Driver | \yCalzaghe\y       | 2089900             |
+| Survival Abyss      | \mSHADE Engine\m   | 2104600             |
+
+---
