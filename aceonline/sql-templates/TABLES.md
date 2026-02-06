@@ -1,3 +1,8 @@
+### atum2_db_account.dbo.td_PollDate
+
+>- Determines faction leaders' application, vote, and election dates.
+>- All columns are of type `datetime` and self explanatory.
+>- Note that, there are requirements to be able to apply which you can't fullfill in a solo server. For such case, editing the [td_InfluenceWarData](#atum2_db_1.dbotd_influencewardata) to set yourself as a leader is the better choice.
 
 ---
 
