@@ -6,6 +6,17 @@
 
 ---
 
+### atum2_db_account.dbo.ti_EnchantInfo
+
+>- Determines the success probabilities and costs of enchanting cards.
+>- `EnchantItemNum` is the item you're enchanting with, not the item that is getting enchanted. As such, these items are mostly cards. Join with the `ItemNum` of [ti_ItemInfo](#atum2_db_accountdboti_iteminfo) to get the corresponding item name and info.
+>- To get the probability divide the prob column values by 100. Meaning, prob of `10,000` corresponds to 100% chance of success. Note that, you can add multipliers to these success rates via the happy hour from the [ti_HappyHourEvent](#atum2_db_accountdboti_happyhourevent).
+>- By default, the max enchant level for weapons is +16, and the max enchant level for engines and shields is +5, since the following `Prob17` and `Prob6` respectively are set to `0`.
+>- Fix and reset cards are also listed here. The default is 100% chance but you could change that here.
+>- With modification, the cards could be applied all the way to +40.
+
+---
+
 ### atum2_db_account.dbo.ti_ItemInfo
 >- Contains all properties of all items.
 >- One of the most useful tables to join with, so you can refer to items with their names instead of their `ItemNum`.
