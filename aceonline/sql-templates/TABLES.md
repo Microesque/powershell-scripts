@@ -92,3 +92,10 @@
 | Survival Abyss      | \mSHADE Engine\m   | 2104600             |
 
 ---
+
+### atum2_db_account.dbo.ti_Monster
+>- Determines the various stats of each mob in the game.
+>- I won't pretend like I know what each column does, but you can modify the level, hp, regen, etc, values of the monsters from here. Unless you know what you're doing, you'd mostly use this table with its `UniqueNumber` column to join and reference the name of the monsters in other tables.
+>- Do know this: certain aspects of monsters, such as which map they spawn in and how many can spawn at a time, are stored in the game's map files. These require dedicated tools to view and modify.
+
+---
