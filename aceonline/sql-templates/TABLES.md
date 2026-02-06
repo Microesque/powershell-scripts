@@ -38,6 +38,16 @@
 
 ---
 
+### atum2_db_account.dbo.ti_InfinityShop
+>- Contains the items listed in the infinity field shop.
+>- `InfinityShopUID` is the `primary key`.
+>- `BuyItemNum` is the item to purchase. Join with the `ItemNum` of [ti_ItemInfo](#atum2_db_accountdboti_iteminfo) to see the item name and info.
+>- `BuyItemCount` is the number of `BuyItemNum` you get per single purchase.
+>- `TradeItemNum` is the item used to purchase the item. Join with the `ItemNum` of [ti_ItemInfo](#atum2_db_accountdboti_iteminfo) to see the item name and info.
+>- `TradeItemCount1` is the number of `TradeItemNum` you need to do a single purchase.
+
+---
+
 ### atum2_db_account.dbo.ti_ItemInfo
 >- Contains all properties of all items.
 >- One of the most useful tables to join with, so you can refer to items with their names instead of their `ItemNum`.
