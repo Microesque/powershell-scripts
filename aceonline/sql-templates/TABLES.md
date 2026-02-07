@@ -93,6 +93,21 @@
 
 ---
 
+### atum2_db_1.dbo.td_OutPostInfo
+>- Contains various information about the outpost wars.
+>- This is where you set the outpost war times.
+>- `OutPostMapIndex` is the outpost map. I don't know which number corresponds to which map.
+>- `OutPostCityMapIndex` likely refers to the outpost headquarters map, buy I'm not sure.
+>- `OutPostGetTime` is the last outpost wars' finish date.
+>- `OutPostNextWarTime` is the next outpost wars' date.
+>- `OutPostNextWarTimeSet` likely shows if anyone managed to own win the last outpost war, but I'm not sure. I think `0` means `finished` and `1` means `unfinished`.
+>- `OutPostGetInfl` is the influence type the outpost currently belongs to:
+>   - `2` -> BCU influence
+>   - `4` -> ANI influence
+>- `OutPostGuildUID` is the id of the guild that currently owns the outpost. You can get more info by joining with the table `atum2_db_1.dbo.td_Guild`.
+
+---
+
 # atum2_db_account.dbo.td_Account
 >- Contains the accounts for the game.
 >- Also contains various stats bound to the account such as account name, account password, account type, register date, last login date, etc... Column names are self explanatory.
