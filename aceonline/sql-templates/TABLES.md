@@ -11,6 +11,7 @@
 - [atum2_db_1.dbo.td_Store](#atum2_db_1.dbotd_store)
 
 **`atum2_db_account:`**
+- [atum2_db_account.dbo.td_Account](#atum2_db_accountdbotd_account)
 - [atum2_db_account.dbo.td_PollDate](#atum2_db_accountdbotd_polldate)
 - [atum2_db_account.dbo.ti_EnchantInfo](#atum2_db_accountdboti_enchantinfo)
 - [atum2_db_account.dbo.ti_HappyHourEvent](#atum2_db_accountdboti_happyhourevent)
@@ -37,6 +38,23 @@
 >   - `2` -> BCU influence
 >   - `4` -> ANI influence
 >   - `255` -> All influence
+>- SPI is a regular item, so it is not stored in the account or the character. It is however, bound to the characters' inventory. Refer to [td_Store](#atum2_db_1.dbotd_store).
+
+---
+
+# atum2_db_account.dbo.td_Account
+>- Contains the accounts for the game.
+>- Also contains various stats bound to the account such as account name, account password, account type, register date, last login date, etc... Column names are self explanatory.
+>- Creating an account is done by adding entries into this table. Most of the columns don't need to be filled and many of them have default values. Refer to my [Add-NewAccount.ps1](../Add-NewAccount.ps1) script to see an implementation.
+>- `AccountUniqueNumber` is `identity primary key`. Do not include when inserting into the table.
+>- `AccountUniqueNumber` can used to join with other tables to add the account name and other various info.
+>- `AccountType` determines the account type:
+>   - `0` -> Normal user
+>   - `128` -> GM
+>   - `256` -> Helper
+>   - `...` -> There are apparently others, but not that important.
+>- `CashPoint` and `WarPoint` store the war points and cash points respectively, since these are account wide currencies.
+>- SPI is a regular item, so it is not stored in the account or the character. It is however, bound to the characters' inventory. Refer to [td_Store](#atum2_db_1.dbotd_store).
 
 ---
 
