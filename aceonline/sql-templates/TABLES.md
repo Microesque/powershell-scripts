@@ -83,6 +83,16 @@
 
 ---
 
+### atum2_db_1.dbo.td_InfluenceWarData
+>- Stores various information about the factions themselves.
+>- You aren't supposed to add or delete entries here. There should be one `InfluenceType` of `2` and one `InfluenceType` of `4` listed in the table.
+>   - `2` -> BCU influence
+>   - `4` -> ANI influence
+>- If you want to set yourself as the faction leader, set the `InfLeaderCharacterUID` to your characters `UniqueNumber` found in [td_Character](#atum2_db_1.dbo.td_Character). This will not give you the items normally given to the leader as you're simply overwriting the information. You can still get these items by editing your [ti_Shop](#atum2_db_accountdboti_shop) entries.
+>- The column names are either self explanatory or I didn't find important to talk about.
+
+---
+
 # atum2_db_account.dbo.td_Account
 >- Contains the accounts for the game.
 >- Also contains various stats bound to the account such as account name, account password, account type, register date, last login date, etc... Column names are self explanatory.
