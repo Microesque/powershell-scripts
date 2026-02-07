@@ -42,6 +42,17 @@
 
 ---
 
+### atum2_db_1.dbo.td_CharacterQuest
+
+>- Contains the list of completed character missions as well as the active one.
+>- `CharacterUniqueNumber` is the `foreign key` for `UniqueNumber` of [td_Character](#atum2_db_accountdbotd_character).
+>- `QuestInfex` refer to the specific mission.
+>- `QuestState`: `1` means currently active, `2` means completed.
+>- Do not know what `QuestParam1` is for, but it is set to `0` for everything. The other columns determine when and how long the quest was active.
+>- You can insert into this table to auto complete missions for characters. After editing, re-logging is required for the changes to update.
+
+---
+
 # atum2_db_account.dbo.td_Account
 >- Contains the accounts for the game.
 >- Also contains various stats bound to the account such as account name, account password, account type, register date, last login date, etc... Column names are self explanatory.
