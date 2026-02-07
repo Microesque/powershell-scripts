@@ -48,6 +48,21 @@
 
 ---
 
+### atum2_db_account.dbo.ti_ItemEvent
+>- Contains the list of items given to characters via various events.
+>- `ItemEventUID` is the `primary key`.
+>- `ItemEventType` is the event the row corresponds to. `2` seems to correspond to membership dailly login rewards. `4` seems to correspond to leveling up? Or maybe active all the time, since it;s used to give rewards when you reach a certain level. I don't know beyond that.
+>- `InfluenceType` -> Specifies which faction the entry applies to:
+>   - `1` -> Normal influence (whatever that means)
+>   - `2` -> BCU influence
+>   - `4` -> ANI influence
+>   - `255` -> All influence
+>- `ItemNum` and `Count` determine the item and how many of it will be given. Join with the `ItemNum` of [ti_ItemInfo](#atum2_db_accountdboti_iteminfo) to get the corresponding item name and info.
+>- `StartTime` and `EndTime` define the active date period for events such as valentines day, or christmas.
+>- Rest of the columns are either self explanatory or ones I simply do not know.
+
+---
+
 ### atum2_db_account.dbo.ti_ItemInfo
 >- Contains all properties of all items.
 >- One of the most useful tables to join with, so you can refer to items with their names instead of their `ItemNum`.
