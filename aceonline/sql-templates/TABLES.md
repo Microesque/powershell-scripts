@@ -73,6 +73,16 @@
 
 ---
 
+### atum2_db_1.dbo.td_InfinityImpute
+>- Logs the daily infinity field tries for each character.
+>- `AccountUID` can be joined with [td_Account](#atum2_db_accountdbotd_account) to get more info about the account the name.
+>- `CharacterUID` can be joined with [td_Character](#atum2_db_1.dbotd_character) to get more info about the character such as the name.
+>- `InfinityModeUID` represents the infinity field map that was initiated.
+>- Other columns are self explanatory.
+>- If you crash during the infinity field and want to re-enter or something, simply delete the corresponding entry for that character. The server autmatically handles deleting the entries that are a day old.
+
+---
+
 # atum2_db_account.dbo.td_Account
 >- Contains the accounts for the game.
 >- Also contains various stats bound to the account such as account name, account password, account type, register date, last login date, etc... Column names are self explanatory.
