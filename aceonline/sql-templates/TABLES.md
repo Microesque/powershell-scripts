@@ -53,6 +53,26 @@
 
 ---
 
+### atum2_db_1.dbo.td_DeclarationOfWar
+
+>- Contains various information about the mothership wars.
+>- `InfluenceType` -> Specifies the mothership faction:
+>   - `2` -> BCU influence
+>   - `4` -> ANI influence
+>- **The information below is my UNTESTED conclusion of what the columns do according to default values and starting an MS war or two. As I modified the server for solo play for myself, I don't have any reason to start or meddle with MS wars, so I didn't bother confirming anything.**
+>- `MSWarStep` seems to be defined in sequential order (`1`->`2`->`3`...). This is likely for the server to determine the level of the mothership, as the level depends on the previous outcome of the battle.
+>- `NCP` is known to stand for nation contribution points. So, this column likely stores the current `NCP` of the nation at the start or maybe the end of the war. You can set it to `0` when inserting into the table.
+>- `MSNum` is the mob id of the ships. It is initialized as `0`, but updated to the appropriate ship according to the previous outcome of the battle. You can join with `UniqueNumber` of [ti_Monster](#atum2_db_accountdboti_monster) to see the names and the stats of the spawned motherships.
+>- `MSAppearanceMap` is the map where the mothership spawned. It is initialized as `0`, but updated to the appropriate value on battle start.
+>- `MSWarStepStartTime` together with `MSWarStepEndTime` from what I understand, seems to determine the date range in which the mothership war can be set to start. In the actual game, mothership battle dates are determined by the faction leader and not by admins via SQL editing. This range likely represents the selectable range for that step as the name implies. So, for most cases you'd set `MSWarStepStartTime` to be the start of the week, and `MSWarStepEndTime` to be the end of the week. The next `MSWarStepStartTime` would be the same as current `MSWarStepEndTime`.
+>- `MSWarStartTime` is the actual date for the mothership battle for that step.
+>- `MSWarEndTime` is automatically updated by the server when the said battle ends. Set to `NULL` when inserting into the table.
+>- `SelectCount` is an unknown for me. It is always set to `3` and doesn't seem to change. I don't know what it does.
+>- `GiveUp` I guess shows if the battle was forfeit? Can you even do that? I don't know. Set to `0` when inserting into the table.
+>- `MSWarEndState` is automatically updated by the server when the said battle ends. Set to `0` when inserting into the table. I don't know what value corresponds to what result, but there are more than a couple states.
+
+---
+
 # atum2_db_account.dbo.td_Account
 >- Contains the accounts for the game.
 >- Also contains various stats bound to the account such as account name, account password, account type, register date, last login date, etc... Column names are self explanatory.
