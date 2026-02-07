@@ -108,6 +108,24 @@
 
 ---
 
+### atum2_db_1.dbo.td_Store
+>- Contains the current items of the characters; this includes inventory and warehouse.
+>- `UniqueNumber` is an `identity primary key`. Do not include when inserting into the table.
+>- `AccountUniqueNumber` is the `foreign key` for `AccountUniqueNumber` of [td_Account](#atum2_db_accountdbotd_account). It determines you which account's character has the item.
+>- `Possess` is the `foreign key` for `UniqeuNumber` of [td_Character](#atum2_db_accountdbotd_character). It determines you which character has the item.
+>- `ItemStorage` determines if the item is in character's inventory or warehouse:
+>   - `0` -> Inventory
+>   - `1` -> Warehouse
+>- `Wear` determines if the item is equipped by the character.
+>   - `0` -> Not wearing
+>   - `1` -> Wearing
+>- `CurrentCount` tells you how many of that item item the character has.
+>- `ItemWindowIndex` seems to be the slot the item is in. I believe, the inventory starts from `100` which represents the top left most slot. It seems that, it's fine for multiple items to listed as the same slot, or set to a slot that isn't continuous. The game seems to handle all of those cases well. When inserting into the table, I recommend setting this value to `MAX(ItemWindowIndex) + 1` or `100`, whichever one is bigger. This way, the item will always appear on the last empty slot in your inventory.
+>- `Itemnum` is the item, and is the `foreign key` for `ItemNum` of [ti_ItemInfo](#atum2_db_accountdboti_iteminfo).
+>- The other columns are either self explanatory or not worth talking about.
+
+---
+
 # atum2_db_account.dbo.td_Account
 >- Contains the accounts for the game.
 >- Also contains various stats bound to the account such as account name, account password, account type, register date, last login date, etc... Column names are self explanatory.
