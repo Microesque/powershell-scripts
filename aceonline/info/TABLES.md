@@ -110,6 +110,7 @@
 
 ### atum2_db_1.dbo.td_Store
 >- Contains the current items of the characters; this includes inventory and warehouse.
+>- `SPI` is an item, so giving or adding money to a character is done from this table.
 >- `UniqueNumber` is an `identity primary key`. Do not include when inserting into the table.
 >- `AccountUniqueNumber` is the `foreign key` for `AccountUniqueNumber` of [td_Account](#atum2_db_accountdbotd_account). It determines you which account's character has the item.
 >- `Possess` is the `foreign key` for `UniqeuNumber` of [td_Character](#atum2_db_accountdbotd_character). It determines you which character has the item.
