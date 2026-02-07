@@ -24,6 +24,22 @@
 
 ---
 
+### atum2_db_1.dbo.td_Character
+
+>- Contains the characters (the actual gears) inside of the accounts.
+>- Also contains various stats bound to the character such as char name, unit kind, level stats, number stats, level, total experience, hp, create time etc... Column names are self explanatory.
+>- War points and cash points are bound to the account, not characters. They are stored in the [td_Account](#atum2_db_accountdbotd_account).
+>- `UniqueNumber` is `identity primary key`. Do not include when inserting into the table.
+>- `UniqueNumber` can used to join with other tables to add the character name and other various info.
+>- `AccountName` and `AccountUniqueNumber` are taken from the [td_Account](#atum2_db_accountdbotd_account).
+>- `InfluenceType` -> Specifies which faction the character belongs to:
+>   - `1` -> Normal influence (whatever that means, maybe pre lvl11)
+>   - `2` -> BCU influence
+>   - `4` -> ANI influence
+>   - `255` -> All influence
+
+---
+
 ### atum2_db_account.dbo.td_PollDate
 
 >- Determines faction leaders' application, vote, and election dates.
@@ -55,7 +71,7 @@
 >    - `StartTime` -> Depending on `DayOfWeek` value, either represents the happy hour start time or the happy hour active start date.
 >    - `EndTime` -> Depending on `DayOfWeek` value, either represents the happy hour end time or the happy hour active end date.
 >    - `InfluenceType` -> Specifies which faction the entry applies to:
->       - `1` -> Normal influence (whatever that means)
+>       - `1` -> Normal influence (whatever that means, maybe pre lvl11)
 >       - `2` -> BCU influence
 >       - `4` -> ANI influence
 >       - `255` -> All influence
@@ -79,7 +95,7 @@
 >- `ItemEventUID` is the `primary key`.
 >- `ItemEventType` is the event the row corresponds to. `2` seems to correspond to membership dailly login rewards. `4` seems to correspond to leveling up? Or maybe active all the time, since it;s used to give rewards when you reach a certain level. I don't know beyond that.
 >- `InfluenceType` -> Specifies which faction the entry applies to:
->   - `1` -> Normal influence (whatever that means)
+>   - `1` -> Normal influence (whatever that means, maybe pre lvl11)
 >   - `2` -> BCU influence
 >   - `4` -> ANI influence
 >   - `255` -> All influence
