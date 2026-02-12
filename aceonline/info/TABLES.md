@@ -8,6 +8,7 @@
 - [atum2_db_1.dbo.td_InfinityImpute](#atum2_db_1.dbotd_infinityimpute)
 - [atum2_db_1.dbo.td_InfluenceWarData](#atum2_db_1.dbotd_influencewardata)
 - [atum2_db_1.dbo.td_OutPostInfo](#atum2_db_1.dbotd_outpostinfo)
+- [atum2_db_1.dbo.td_RenewalStrategyPointSummonTime](#atum2_db_1.dbotd_renewalstrategypointsummontime)
 - [atum2_db_1.dbo.td_Store](#atum2_db_1.dbotd_store)
 
 **`atum2_db_account:`**
@@ -105,6 +106,16 @@
 >   - `2` -> BCU influence
 >   - `4` -> ANI influence
 >- `OutPostGuildUID` is the id of the guild that currently owns the outpost. You can get more info by joining with the table `atum2_db_1.dbo.td_Guild`.
+
+---
+
+### atum2_db_1.dbo.td_RenewalStrategyPointSummonTime
+>- Configures the strategic point spawns.
+>- `DayOfWeek` should be `0–6` which correspond to the days `sunday–monday` respectively.
+>- `StartTime` and `EndTime` determine the **time** range where SPs can spawn. The date values are ignored.
+>- `CountBCU` and `CountANI` represent how many SPs should spawn within the specified time frame and day of the week previously.
+>- As you can derive from the column values, SPs are spawned automatically and periodically by the server. You only get to configure the automation settings. You do not set the date/time of SP spawns individually.
+>- You can use the admin `/summon` command to summon SPs if you need them to be spawned on demand.
 
 ---
 
