@@ -3,9 +3,9 @@
 # ==============================================================================
 [CmdletBinding()]
 param (
-    [string]$SQLServer,
-    [string]$SQLUsername,
-    [string]$SQLPassword,
+    [string]$MssqlServerAddress,
+    [string]$MssqlUsername,
+    [string]$MssqlPassword,
     [string]$AccountName,
     [string]$Value,
 
@@ -26,30 +26,30 @@ if ($NonInteractive) {
 # ==============================================================================
 $ModulesPath = Join-Path $PSScriptRoot "modules"
 Import-Module (Join-Path $ModulesPath "CommonUtils.psm1") -Force
-Import-Module (Join-Path $ModulesPath "SqlExpressUtils.psm1") -Force
+Import-Module (Join-Path $ModulesPath "MssqlUtils.psm1") -Force
 
 # ==============================================================================
 # =========================== PARAM/INPUT VALIDATION ===========================
 # ==============================================================================
 Write-Host ""
 
-# $SQLServer
+# $MssqlServerAddress
 if (-not $NonInteractive) {
-    $SQLServer = (Read-Host "Enter SQL server address")
+    $MssqlServerAddress = (Read-Host "Enter MSSQL server address")
 }
-$SQLServer = Assert-TrimStrIsValidServerAddress $SQLServer -Name "SQL server"
+$MssqlServerAddress = Assert-TrimStrIsValidServerAddress $MssqlServerAddress -Name "MSSQL server address"
 
-# $SQLUsername
+# $MssqlUsername
 if (-not $NonInteractive) {
-    $SQLUsername = (Read-Host "Enter SQL username")
+    $MssqlUsername = (Read-Host "Enter MSSQL username")
 }
-$SQLUsername = Assert-TrimStrIsNotNullOrEmpty $SQLUsername -Name "SQL username"
+$MssqlUsername = Assert-TrimStrIsNotNullOrEmpty $MssqlUsername -Name "MSSQL username"
 
-# $SQLPassword
+# $MssqlPassword
 if (-not $NonInteractive) {
-    $SQLPassword = (Read-SecureStringAsString "Enter SQL password")
+    $MssqlPassword = (Read-SecureStringAsString "Enter MSSQL password")
 }
-$SQLPassword = Assert-TrimStrIsNotNullOrEmpty $SQLPassword -Name "SQL password"
+$MssqlPassword = Assert-TrimStrIsNotNullOrEmpty $MssqlPassword -Name "MSSQL password"
 
 # $AccountName
 if (-not $NonInteractive) {
@@ -66,14 +66,17 @@ $Value = Assert-TrimStrIsPrefixedInt $Value -Name "War points"
 # ==============================================================================
 # =================================== SCRIPT ===================================
 # ==============================================================================
+$securePassword = ConvertTo-SecureString $MssqlPassword -AsPlainText -Force
+$credential = [PSCredential]::new($MssqlUsername, $securePassword)
+$MssqlPassword = $null
+
 $table = "atum2_db_account.dbo.td_Account"
 $column = "WarPoint"
 $whereCondition = "AccountName = '$AccountName'"
 
-$oldValue = Get-TableColumnValue `
-    -SQLServer $SQLServer `
-    -SQLUsername $SQLUsername `
-    -SQLPassword $SQLPassword `
+$oldValue = Get-MSSQLScalarValue `
+    -ServerAddress $MssqlServerAddress `
+    -Credential $credential `
     -Table $table `
     -Column $column `
     -WhereCondition $whereCondition
@@ -91,10 +94,9 @@ else {
     $valueInt = [int]$Value
 }
     
-$columnsAffected = Set-TableColumnValues `
-    -SQLServer $SQLServer `
-    -SQLUsername $SQLUsername `
-    -SQLPassword $SQLPassword `
+Set-MSSQLColumnValues `
+    -ServerAddress $MssqlServerAddress `
+    -Credential $credential `
     -Table $table `
     -Column $column `
     -Value "$valueInt" `

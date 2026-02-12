@@ -3,9 +3,9 @@
 # ==============================================================================
 [CmdletBinding()]
 param (
-    [string]$SQLServer,
-    [string]$SQLUsername,
-    [string]$SQLPassword,
+    [string]$MssqlServerAddress,
+    [string]$MssqlUsername,
+    [string]$MssqlPassword,
     [string]$CharacterName,
 
     [switch]$NonInteractive
@@ -25,30 +25,30 @@ if ($NonInteractive) {
 # ==============================================================================
 $ModulesPath = Join-Path $PSScriptRoot "modules"
 Import-Module (Join-Path $ModulesPath "CommonUtils.psm1") -Force
-Import-Module (Join-Path $ModulesPath "SqlExpressUtils.psm1") -Force
+Import-Module (Join-Path $ModulesPath "MssqlUtils.psm1") -Force
 
 # ==============================================================================
 # =========================== PARAM/INPUT VALIDATION ===========================
 # ==============================================================================
 Write-Host ""
 
-# $SQLServer
+# $MssqlServerAddress
 if (-not $NonInteractive) {
-    $SQLServer = (Read-Host "Enter SQL server address")
+    $MssqlServerAddress = (Read-Host "Enter MSSQL server address")
 }
-$SQLServer = Assert-TrimStrIsValidServerAddress $SQLServer -Name "SQL server"
+$MssqlServerAddress = Assert-TrimStrIsValidServerAddress $MssqlServerAddress -Name "MSSQL server address"
 
-# $SQLUsername
+# $MssqlUsername
 if (-not $NonInteractive) {
-    $SQLUsername = (Read-Host "Enter SQL username")
+    $MssqlUsername = (Read-Host "Enter MSSQL username")
 }
-$SQLUsername = Assert-TrimStrIsNotNullOrEmpty $SQLUsername -Name "SQL username"
+$MssqlUsername = Assert-TrimStrIsNotNullOrEmpty $MssqlUsername -Name "MSSQL username"
 
-# $SQLPassword
+# $MssqlPassword
 if (-not $NonInteractive) {
-    $SQLPassword = (Read-SecureStringAsString "Enter SQL password")
+    $MssqlPassword = (Read-SecureStringAsString "Enter MSSQL password")
 }
-$SQLPassword = Assert-TrimStrIsNotNullOrEmpty $SQLPassword -Name "SQL password"
+$MssqlPassword = Assert-TrimStrIsNotNullOrEmpty $MssqlPassword -Name "MSSQL password"
 
 # $CharacterName
 if (-not $NonInteractive) {
@@ -59,10 +59,13 @@ $CharacterName = Assert-TrimStrIsNotNullOrEmpty $CharacterName -Name "Character 
 # ==============================================================================
 # =================================== SCRIPT ===================================
 # ==============================================================================
-$characterUniqueNumber = Get-TableColumnValue `
-    -SQLServer $SQLServer `
-    -SQLUsername $SQLUsername `
-    -SQLPassword $SQLPassword `
+$securePassword = ConvertTo-SecureString $MssqlPassword -AsPlainText -Force
+$credential = [PSCredential]::new($MssqlUsername, $securePassword)
+$MssqlPassword = $null
+
+$characterUniqueNumber = Get-MSSQLScalarValue `
+    -ServerAddress $MssqlServerAddress `
+    -Credential $credential `
     -Table "atum2_db_1.dbo.td_Character" `
     -Column "UniqueNumber" `
     -WhereCondition "CharacterName = '$CharacterName'"
@@ -71,21 +74,20 @@ if ($null -eq $characterUniqueNumber) {
     throw "Character name [$CharacterName] was not found!"
 }
 
-$columnsAffected = Set-TableColumnValues `
-    -SQLServer $SQLServer `
-    -SQLUsername $SQLUsername `
-    -SQLPassword $SQLPassword `
+$rowsAffected = Set-MSSQLColumnValues `
+    -ServerAddress $MssqlServerAddress `
+    -Credential $credential `
     -Table "atum2_db_1.dbo.td_CharacterQuest" `
     -Column "QuestState" `
     -Value "2" `
     -WhereCondition "CharacterUniqueNumber = $characterUniqueNumber AND QuestState = 1"
 
-if ($columnsAffected -eq 0) {
+if ($rowsAffected -eq 0) {
     throw "No active quest found for the character [$CharacterName]!"
 }
 
 $exitMsg = @"
-The character [$CharacterName] had [$columnsAffected] active quests, which are now complete!
+The character [$CharacterName] had [$rowsAffected] active quests, which are now complete!
 (Requires character re-log!)
 Script successful!
 "@

@@ -3,9 +3,9 @@
 # ==============================================================================
 [CmdletBinding()]
 param (
-    [string]$SQLServer,
-    [string]$SQLUsername,
-    [string]$SQLPassword,
+    [string]$MssqlServerAddress,
+    [string]$MssqlUsername,
+    [string]$MssqlPassword,
     [string]$AccountName,
     [string]$AccountPassword,
     [string]$AccountType,
@@ -27,30 +27,30 @@ if ($NonInteractive) {
 # ==============================================================================
 $ModulesPath = Join-Path $PSScriptRoot "modules"
 Import-Module (Join-Path $ModulesPath "CommonUtils.psm1") -Force
-Import-Module (Join-Path $ModulesPath "SqlExpressUtils.psm1") -Force
+Import-Module (Join-Path $ModulesPath "MssqlUtils.psm1") -Force
 
 # ==============================================================================
 # =========================== PARAM/INPUT VALIDATION ===========================
 # ==============================================================================
 Write-Host ""
 
-# $SQLServer
+# $MssqlServerAddress
 if (-not $NonInteractive) {
-    $SQLServer = (Read-Host "Enter SQL server address")
+    $MssqlServerAddress = (Read-Host "Enter MSSQL server address")
 }
-$SQLServer = Assert-TrimStrIsValidServerAddress $SQLServer -Name "SQL server"
+$MssqlServerAddress = Assert-TrimStrIsValidServerAddress $MssqlServerAddress -Name "MSSQL server address"
 
-# $SQLUsername
+# $MssqlUsername
 if (-not $NonInteractive) {
-    $SQLUsername = (Read-Host "Enter SQL username")
+    $MssqlUsername = (Read-Host "Enter MSSQL username")
 }
-$SQLUsername = Assert-TrimStrIsNotNullOrEmpty $SQLUsername -Name "SQL username"
+$MssqlUsername = Assert-TrimStrIsNotNullOrEmpty $MssqlUsername -Name "MSSQL username"
 
-# $SQLPassword
+# $MssqlPassword
 if (-not $NonInteractive) {
-    $SQLPassword = (Read-SecureStringAsString "Enter SQL password")
+    $MssqlPassword = (Read-SecureStringAsString "Enter MSSQL password")
 }
-$SQLPassword = Assert-TrimStrIsNotNullOrEmpty $SQLPassword -Name "SQL password"
+$MssqlPassword = Assert-TrimStrIsNotNullOrEmpty $MssqlPassword -Name "MSSQL password"
 
 # $AccountName
 if (-not $NonInteractive) {
@@ -77,10 +77,13 @@ $AccountType = Assert-TrimStrIsValidAccountType $AccountType -Name "Account type
 # ==============================================================================
 # =================================== SCRIPT ===================================
 # ==============================================================================
-$accountEntry = Get-TableColumnValue `
-    -SQLServer $SQLServer `
-    -SQLUsername $SQLUsername `
-    -SQLPassword $SQLPassword `
+$securePassword = ConvertTo-SecureString $MssqlPassword -AsPlainText -Force
+$credential = [PSCredential]::new($MssqlUsername, $securePassword)
+$MssqlPassword = $null
+
+$accountEntry = Get-MSSQLScalarValue `
+    -ServerAddress $MssqlServerAddress `
+    -Credential $credential `
     -Table "atum2_db_account.dbo.td_Account" `
     -Column "AccountName" `
     -WhereCondition "AccountName = '$AccountName'"
@@ -88,73 +91,41 @@ if ($null -ne $accountEntry) {
     throw "Account name [$AccountName] already in use!"
 }
 
-$columnNames = @(
-    "AccountName",
-    "Password",
-    "AccountType",
-    "Sex",
-    "BirthYear",
-    "RegisteredDate",
-    "LastLoginDate",
-    "IsBlocked",
-    "ChattingBlocked",
-    "MGameEventType",
-    "ConnectingServerGroupID",
-    "GameContinueTimeInSecondOfToday",
-    "LastGameEndDate",
-    "JuminNumber",
-    "SecondaryPassword",
-    "userfrom",
-    "Password_new",
-    "email",
-    "CashPoint",
-    "WarPoint",
-    "CumulativeWarPoint",
-    "VoteCount",
-    "WebPoint",
-    "ActivationCode",
-    "Active" ,
-    "LastGetDCoinDate",
-    "GameContinueTimeInSecondofEvent"
-)
+$columns = @{
+    "AccountName"                     = "'$AccountName'"
+    "Password"                        = "'$AccountPassword'"
+    "AccountType"                     = "$AccountType"
+    "Sex"                             = "NULL"
+    "BirthYear"                       = "NULL"
+    "RegisteredDate"                  = "getdate()"
+    "LastLoginDate"                   = "getdate()"
+    "IsBlocked"                       = "0"
+    "ChattingBlocked"                 = "0"
+    "MGameEventType"                  = "0"
+    "ConnectingServerGroupID"         = "0"
+    "GameContinueTimeInSecondOfToday" = "0"
+    "LastGameEndDate"                 = "getdate()"
+    "JuminNumber"                     = "NULL"
+    "SecondaryPassword"               = "NULL"
+    "userfrom"                        = "0"
+    "Password_new"                    = "NULL"
+    "email"                           = "NULL"
+    "CashPoint"                       = "1"
+    "WarPoint"                        = "1"
+    "CumulativeWarPoint"              = "1"
+    "VoteCount"                       = "0"
+    "WebPoint"                        = "0"
+    "ActivationCode"                  = "NULL"
+    "Active"                          = "1"
+    "LastGetDCoinDate"                = "NULL"
+    "GameContinueTimeInSecondofEvent" = "NULL"
+}
 
-$columnValues = @(
-    "'$AccountName'",
-    "'$AccountPassword'",
-    "$AccountType",
-    "NULL",
-    "NULL",
-    "getdate()",
-    "getdate()",
-    "0",
-    "0",
-    "0",
-    "0",
-    "0",
-    "getdate()",
-    "NULL",
-    "NULL",
-    "0",
-    "NULL",
-    "NULL",
-    "1",
-    "1",
-    "1",
-    "0",
-    "0",
-    "NULL",
-    "1",
-    "NULL",
-    "NULL"
-)
-
-Add-RowIntoTable `
-    -SQLServer $SQLServer `
-    -SQLUsername $SQLUsername `
-    -SQLPassword $SQLPassword `
+Add-MSSQLRowIntoTable `
+    -ServerAddress $MssqlServerAddress `
+    -Credential $credential `
     -Table "atum2_db_account.dbo.td_Account" `
-    -ColumnNames $columnNames `
-    -ColumnValues $columnValues
+    -Columns $columns `
 
 $exitMsg = @"
 Account created!
