@@ -65,6 +65,27 @@ function Assert-TrimStrIsValidServerAddress {
     return $Server
 }
 
+# Checks if the trimmed version of the specified value can be cast into a positive int.
+# Returns the trimmed string.
+# Throws on fail.
+function Assert-TrimStrIsPositiveInt {
+    [CmdletBinding()]
+    param (
+        [Parameter(Mandatory = $true)]
+        $Value,
+        
+        [string]$Name = "_variable_"
+    )
+
+    $Value = Assert-TrimStrIsNotNullOrEmpty $Value -Name $Name
+    [int]$intValue = 0
+    if (-not [int]::TryParse($Value, [ref]$intValue) -or $intValue -lt 0) {
+        throw "Invalid [$Name] value [$Value]. Needs to be a positive int."
+    }
+
+    return $Value
+}
+
 # Checks if the trimmed version of the specified value can be cast into a positive float.
 # Returns the trimmed string.
 # Throws on fail.
@@ -78,7 +99,7 @@ function Assert-TrimStrIsPositiveFloat {
     )
 
     $Value = Assert-TrimStrIsNotNullOrEmpty $Value -Name $Name
-    $floatValue = 0.0
+    [double]$floatValue = 0.0
     if (-not [double]::TryParse($Value, [ref]$floatValue) -or $floatValue -lt 0.0) {
         throw "Invalid [$Name] value [$Value]. Needs to be a positive float."
     }

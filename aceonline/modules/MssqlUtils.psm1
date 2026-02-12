@@ -75,7 +75,8 @@ Optional condition to append to the WHERE clause of the query.
 .OUTPUTS
 [object]
 The first value returned by the query. If multiple rows are selected, only the
-first value is returned.
+first value is returned. If the resulting table was empty,
+returns NULL.
 #>
 function Get-MSSQLScalarValue {
     [CmdletBinding()]
@@ -281,6 +282,87 @@ function Add-MSSQLRowIntoTable {
     try {
         $connection.Open()
         $result = $command.ExecuteNonQuery()
+    }
+    catch {
+        throw $_.Exception.Message + 
+        "`n-----------------" + 
+        "`nServer: $ServerAddress" + 
+        "`nUsername: $($Credential.UserName)" + 
+        "`nQuery: $query"
+    }
+    finally {
+        $connection.Close() # Silently fails if already closed
+    }
+
+    return $result
+}
+
+<#
+.SYNOPSIS
+Returns the maximum value from a Microsoft SQL Server table column.
+
+.DESCRIPTION
+Executes a SELECT MAX(<column>) statement against the specified table and column
+and returns the result.
+
+The connection string is explicitly configured to:
+- Use SQL authentication (Windows authentication is disabled)
+- Use TCP port 1433
+- Connect to the "master" database
+
+.PARAMETER ServerAddress
+The DNS name or IP address of the SQL Server instance. Do not include the port
+number; TCP port 1433 is always used.
+
+.PARAMETER Credential
+A [PSCredential] object containing the SQL Server username and password.
+
+.PARAMETER Table
+The name of the table to query.
+
+.PARAMETER Column
+The name of the column to query.
+
+.PARAMETER WhereCondition
+Optional condition to append to the WHERE clause of the query.
+
+.OUTPUTS
+Returns the scalar result of the query. If the resulting table was empty,
+returns NULL.
+#>
+function Get-MSSQLMaxColumnValue {
+    [CmdletBinding()]
+    param (
+        [Parameter(Mandatory)]
+        [string]$ServerAddress,
+
+        [Parameter(Mandatory)]
+        [PSCredential]$Credential,
+
+        [Parameter(Mandatory)]
+        [string]$Table,
+
+        [Parameter(Mandatory)]
+        [string]$Column,
+
+        [Parameter()]
+        [string]$WhereCondition = $null
+    )
+
+    $query = "SELECT Max($Column) FROM $Table"
+    if (-not [string]::IsNullOrEmpty($WhereCondition)) {
+        $query += " WHERE $WhereCondition"
+    }
+    
+    $connection = Get-MSSQLConnection `
+        -ServerAddress $ServerAddress `
+        -Credential $Credential
+    $command = $connection.CreateCommand()
+    $command.CommandText = $query
+
+    try {
+        $connection.Open()
+        $result = $command.ExecuteScalar()
     }
     catch {
         throw $_.Exception.Message + 
