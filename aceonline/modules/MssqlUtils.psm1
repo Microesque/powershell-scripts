@@ -113,11 +113,13 @@ function Get-MSSQLScalarValue {
         $result = $command.ExecuteScalar()
     }
     catch {
-        throw $_.Exception.Message + 
-        "`n-----------------" + 
+        $msg = $_.Exception.Message + 
+        "`n------------------------" + 
         "`nServer: $ServerAddress" + 
         "`nUsername: $($Credential.UserName)" + 
-        "`nQuery: $query"
+        "`nQuery: $query" +
+        "`n------------------------"
+        throw [System.Exception]::new($msg, $_.Exception)
     }
     finally {
         $connection.Close() # Silently fails if already closed
@@ -201,11 +203,13 @@ function Set-MSSQLColumnValues {
         $result = $command.ExecuteNonQuery()
     }
     catch {
-        throw $_.Exception.Message + 
-        "`n-----------------" + 
+        $msg = $_.Exception.Message + 
+        "`n------------------------" + 
         "`nServer: $ServerAddress" + 
         "`nUsername: $($Credential.UserName)" + 
-        "`nQuery: $query"
+        "`nQuery: $query" +
+        "`n------------------------"
+        throw [System.Exception]::new($msg, $_.Exception)
     }
     finally {
         $connection.Close() # Silently fails if already closed
@@ -284,11 +288,13 @@ function Add-MSSQLRowIntoTable {
         $result = $command.ExecuteNonQuery()
     }
     catch {
-        throw $_.Exception.Message + 
-        "`n-----------------" + 
+        $msg = $_.Exception.Message + 
+        "`n------------------------" + 
         "`nServer: $ServerAddress" + 
         "`nUsername: $($Credential.UserName)" + 
-        "`nQuery: $query"
+        "`nQuery: $query" +
+        "`n------------------------"
+        throw [System.Exception]::new($msg, $_.Exception)
     }
     finally {
         $connection.Close() # Silently fails if already closed
@@ -365,11 +371,13 @@ function Get-MSSQLMaxColumnValue {
         $result = $command.ExecuteScalar()
     }
     catch {
-        throw $_.Exception.Message + 
-        "`n-----------------" + 
+        $msg = $_.Exception.Message + 
+        "`n------------------------" + 
         "`nServer: $ServerAddress" + 
         "`nUsername: $($Credential.UserName)" + 
-        "`nQuery: $query"
+        "`nQuery: $query" +
+        "`n------------------------"
+        throw [System.Exception]::new($msg, $_.Exception)
     }
     finally {
         $connection.Close() # Silently fails if already closed
