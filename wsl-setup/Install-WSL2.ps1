@@ -5,43 +5,42 @@ $CurrentPrincipal = New-Object Security.Principal.WindowsPrincipal $([Security.P
 $Admin = [Security.Principal.WindowsBuiltinRole]::Administrator
 if (-not $CurrentPrincipal.IsInRole($Admin)) {
     Start-Process Powershell.exe -Verb RunAs -ArgumentList "-file `"$($myinvocation.MyCommand.Definition)`""
-    exit
+    exit 0
 }
 
 # ==============================================================================
 # ================================== FUNCTIONS =================================
 # ==============================================================================
-# Custom fucntion for exiting the script.
-function Stop-ScriptAfterKeyPress {
-    Write-Host "`nExecution stopped. Press any key to exit."
-    $null = $Host.UI.RawUI.ReadKey("NoEcho, IncludeKeyDown")
-    exit
-}
+<#
+.SYNOPSIS
+Writes a formatted step title to the console.
 
-# Formats and prints the title (max. 80 chars).
+.DESCRIPTION
+Writes a formatted step header to the console by surrounding the message
+with brackets and padding it with '=' characters to create a visual divider
+for the logs.
+#>
 function Write-StepTitle {
+    [CmdletBinding()]
     param (
         [Parameter(Mandatory = $true)]
-        [string]$msg
+        [ValidateLength(1, 80)]
+        [string]$Message
     )
 
-    $maxLength = 80
-    if ($msg.Length -gt $maxLength) {
-        throw "Step title message too long (max. $maxLength chars) -> $($msg.Substring(0, 40))..."
-    }
-
-    $num = $maxLength - $msg.Length - 2
-    if ($num -lt 0) {
-        $num = 0
-    }
-    Write-Host "`n[$msg]$("=" * $num)`n"
+    $Message = "[$Message]".PadRight(80, '=')
+    Write-Host "`n$Message`n"
 }
 
-# Custom printing function for formatting logging messages. Use one of:
-# -Success
-# -Fail
-# -Warning
-# -Info
+<#
+.SYNOPSIS
+Writes a formatted log message to the console.
+
+.DESCRIPTION
+Writes a message to the host with a prefixed indicator and color based on log
+type. Supported log types: -Success, -Fail, -Warning, -Info
+If no switch is provided, defaults to Info.
+#>
 function Write-Log {
     [CmdletBinding(DefaultParameterSetName = "Info")]
     param (
@@ -51,9 +50,10 @@ function Write-Log {
         [Parameter(ParameterSetName = "Info")]    [switch]$Info,
 
         [Parameter(Mandatory = $true, Position = 0)]
+        [ValidateNotNullOrEmpty()]
         [string]$Message
     )
-    
+
     switch ($PSCmdlet.ParameterSetName) {
         "Success" { Write-Host "[/] $Message" -ForegroundColor Green }
         "Fail" { Write-Host "[!] $Message" -ForegroundColor Red }
@@ -62,16 +62,43 @@ function Write-Log {
     }
 }
 
-# Tests to see if software requirements for wsl installtion are met.
-# Returns $true or $false
+<#
+.SYNOPSIS
+Tests whether the system meets the software requirements for WSL2.
+
+.DESCRIPTION
+Performs a series of software compatibility checks for Windows Subsystem for
+Linux (WSL2) and logs the results.
+
+Checks performed:
+- Checks if the OS is Windows (immediately returns $false if not).
+- Checks Windows Build number (19041+ required).
+- Checks the state of "VirtualMachinePlatform" Windows Feature.
+- Checks the state of "Microsoft-Windows-Subsystem-Linux" Windows Feature.
+
+.OUTPUTS
+[bool]
+Returns $true if all requirements are met, otherwise $false.
+#>
 function Test-SoftwareRequirements {
+    [CmdletBinding()]
+    param()
+
     $result = $true
 
-    # Print OS name info
-    $osCaption = (Get-CimInstance Win32_OperatingSystem).Caption
-    Write-Log "OS Name: $osCaption"-Info
+    # Check non-windows systems
+    if ($PSVersionTable.PSVersion.Major -ge 6) {
+        if (-not $IsWindows) {
+            Write-Log "WSL2 requirements can only be checked on Windows." -Fail
+            return $false
+        }
+    }
 
-    # Check build number, WSL2 requires 19041+
+    # Log OS name
+    $osCaption = (Get-CimInstance Win32_OperatingSystem).Caption
+    Write-Log "OS Name: $osCaption" -Info
+
+    # Check OS build number, WSL2 requires build 19041+
     $build = (Get-CimInstance Win32_OperatingSystem).BuildNumber
     if ([int]$Build -ge 19041) {
         Write-Log "Windows build: $build -> Compatible with WSL2." -Success 
@@ -87,13 +114,14 @@ function Test-SoftwareRequirements {
         Write-Log "Virtual Machine Platform (VMP) is enabled." -Success
     }
     else {
-        $msg = "Virtual Machine Platform (VMP) is disabled. WSL2 will not work." +
-        " Enable Virtual Machine Platform (VMP) and restart your computer."
-        Write-Log $msg -Fail
+        Write-Log (
+            "Virtual Machine Platform (VMP) is disabled. WSL2 will not work." +
+            " Enable Virtual Machine Platform (VMP) and restart your computer."
+        ) -Fail
         $result = $false
     }
 
-    # Check WSL windows feature (this is only for WSL1, WSL2 doesn't require this)
+    # Check WSL windows feature (only for WSL1, WSL2 doesn't require this)
     $wsl = Get-WindowsOptionalFeature -Online -FeatureName "Microsoft-Windows-Subsystem-Linux"
     if ($wsl.State -eq "Enabled") {
         Write-Log "`"Windows Subsystem for Linux`" optional feature is enabled. WSL1 is also supported on this computer." -Success
@@ -105,34 +133,58 @@ function Test-SoftwareRequirements {
     return $result
 }
 
-# Tests to see if hardware requirements for wsl installtion are met.
-# Returns $true or $false
+<#
+.SYNOPSIS
+Tests whether the system meets the hardware requirements for WSL2.
+
+.DESCRIPTION
+Performs a series of hardware compatibility checks for Windows Subsystem for
+Linux (WSL2) and logs the results.
+
+Checks performed:
+- Checks for an active hypervisor (immediately returns $true if Hyper-V is active).
+- Checks CPU support for hardware virtualization (VT-x/AMD-V).
+- Checks CPU support for Second Level Address Translation (SLAT).
+- Checks the state of hardware virtualization in BIOS/UEFI settings.
+
+.OUTPUTS
+[bool]
+Returns $true if all requirements are met, otherwise $false.
+#>
 function Test-HardwareRequirements {
+    [CmdletBinding()]
+    param()
+
+    # Log CPU and motherboard
     $processorNames = (Get-CimInstance Win32_Processor).Name -join " && "
     $motherboardModel = (Get-CimInstance Win32_ComputerSystem).Model
     Write-Log "Processor Name(s): $processorNames" -Info
     Write-Log "Motherboard Model: $motherboardModel" -Info
 
+    # Check for an active hypervisor, return if hyper-v is active
     if ((Get-CimInstance Win32_ComputerSystem).HypervisorPresent) {
         Write-Log "Running hypervisor detected on the system." -Info
-
         $hypervInfo = Get-CimInstance -ClassName "Win32_PerfRawData_HvStats_HyperVHypervisor" -ErrorAction SilentlyContinue
         if ($hypervInfo) {
-            Write-Log "Hyper-V is active and WSL2 can run." -Success
+            Write-Log "Hypervisor detected. Hyper-V is active and WSL2 can run." -Success
             return $true
-        }
-        
-        Write-Log "Detected hypervisor is likely not Hyper-V and could prevent WSL2 from running." -Fail
+        } 
+        Write-Log "Hypervisor detected. It is likely not Hyper-V and could prevent WSL2 from running." -Fail
         return $false
     }
+    Write-Log "No hypervisor detected. If the checks below are green, you may need to restart your computer." -Fail
 
-    Write-Log "No running hypervisor detected. If the checks below are green, you may need to restart your computer." -Fail
+    # Run computerinfo without progress bar
+    $oldProgressPreference = $ProgressPreference
+    try {
+        $ProgressPreference = 'SilentlyContinue'
+        $computerInfo = Get-ComputerInfo -Property 'HyperVRequirement*'
+    }
+    finally {
+        $ProgressPreference = $oldProgressPreference
+    }
 
-    $ProgressPreference = "SilentlyContinue"
-    $computerInfo = Get-ComputerInfo -Property "HyperVRequirement*"
-    $ProgressPreference = "Continue"
-
-    
+    # Check CPU support
     if ($computerInfo.HyperVRequirementVMMonitorModeExtensions) {
         Write-Log "CPU supports hardware virtualization (VT-x/AMD-V)." -Success
     }
@@ -140,6 +192,7 @@ function Test-HardwareRequirements {
         Write-Log "CPU does not support hardware virtualization (VT-x/AMD-V). WSL2 cannot run on this system." -Fail
     }
 
+    # Check SLAT
     if ($computerInfo.HyperVRequirementSecondLevelAddressTranslation) {
         Write-Log "CPU supports Second Level Address Translation (SLAT)." -Success
     }
@@ -147,6 +200,7 @@ function Test-HardwareRequirements {
         Write-Log "CPU does not support Second Level Address Translation (SLAT). WSL2 cannot run on this system." -Fail
     }
 
+    # Check BIOS setting
     if ($computerInfo.HyperVRequirementVirtualizationFirmwareEnabled) {
         Write-Log "Hardware virtualization is enabled in BIOS/UEFI." -Success
     }
@@ -157,45 +211,102 @@ function Test-HardwareRequirements {
     return $false
 }
 
-# Tests to see if wsl is already installed. Prints the version info.
-# Returns $true or $false
+<#
+.SYNOPSIS
+Tests whether WSL is installed and functional.
+
+.DESCRIPTION
+Verifies the existence of wsl.exe and invokes wsl.exe -status to verify that the
+executable is operating correctly and is returning a successful exit code.
+
+.OUTPUTS
+[bool]
+Returns $true if WSL is installed and operational; otherwise $false.
+#>
 function Test-WSLInstallation {
-    $lines = & wsl --version
-    if ($LASTEXITCODE -ne 0) {
-        Write-Log "WSL is not installed." -Fail
+    [CmdletBinding()]
+    param()
+
+    if (-not (Get-Command wsl.exe -ErrorAction SilentlyContinue)) {
+        Write-Log "wsl.exe not found in the system PATH." -Fail
         return $false
     }
-
-    Write-Log "WSL is installed." -Success
-    $lines | ForEach-Object { $_ -replace "`0", "" } | Where-Object { $_.Contains("WSL version:") } | ForEach-Object { Write-Log "$_" -Info }
-
+    $null = & wsl.exe --status 2>$null
+    if ($LASTEXITCODE -ne 0) {
+        Write-Log "WSL is not currently installed, or the version may be too old." -Fail
+        return $false
+    }
+    Write-Log "WSL is currently installed." -Success
     return $true
 }
 
-# Updates the wsl installation if possible.
-# Returns $true or $false
+<#
+.SYNOPSIS
+Logs the installed WSL version.
+
+.DESCRIPTION
+Invokes wsl.exe --version to retrieve version information. Evaluates the exit
+code to determine success. Assumes that wsl.exe is available in the system PATH.
+#>
+function Write-WSLVersion {
+    [CmdletBinding()]
+    param()
+    
+    $lines = & wsl.exe --version 2>$null
+    $msg = $lines | ForEach-Object { $_ -replace "`0", "" } | Where-Object { $_ -match "WSL version:" }
+    if ($msg) {
+        $msg | ForEach-Object { Write-Log $_ -Info }
+    }
+    else {
+        Write-Log "WSL version information not available." -Info
+    }
+}
+
+<#
+.SYNOPSIS
+Attempts to update WSL to the latest version.
+
+.DESCRIPTION
+Executes wsl.exe --update to initiate the update. Evaluates the exit code to
+determine success. Assumes that wsl.exe is available in the system PATH.
+
+.OUTPUTS
+[bool]
+Returns $true if update was successful; otherwise $false.
+#>
 function Update-WSL {
-    $lines = & wsl --update 2>&1
+    $lines = & wsl.exe --update 2>&1
     $output = ($lines -join "`n").Replace("`0", "")
     if ($LASTEXITCODE -ne 0) {
         Write-Log "WSL update failed with exit code $LASTEXITCODE. Output:`n$output" -Fail
         return $false
     }
 
-    if ($output -match "already installed.") {
+    if ($output -match "already") {
         Write-Log "WSL is up to date." -Success
     }
     else {
-        Write-Log "WSL updated." -Success
+        Write-Log "WSL successfully updated." -Success
     }
 
     return $true
 }
 
-# Installs wsl. Make sure to do the required checks before calling this function.
-# Returns $true or $false
+<#
+.SYNOPSIS
+Attempts to install WSL.
+
+.DESCRIPTION
+Executes wsl.exe --install to initiate the installation. Evaluates the exit code
+to determine success. Assumes that wsl.exe is available in the system PATH.
+
+.OUTPUTS
+[bool]
+Returns $true if installation was successful; otherwise $false.
+#>
 function Install-WSL {
-    $lines = & wsl --install --no-distribution 2>&1
+    Write-Log "Installing WSL..." -Info
+    $lines = & wsl.exe --install --no-distribution 2>&1
     if ($LASTEXITCODE -ne 0) {
         $output = ($lines -join "`n").Replace("`0", "")
         Write-Log "WSL installation failed with exit code $LASTEXITCODE. Output:`n$output" -Fail
@@ -206,17 +317,27 @@ function Install-WSL {
     return $true
 }
 
-# Sets default wsl version to 2. This also verifies wsl2 compatibility as it'll fail if incompatible.
-# Returns $true or $false
+<#
+.SYNOPSIS
+Attempts to set the default WSL version to WSL2.
+
+.DESCRIPTION
+Executes wsl.exe --set-default-version 2 to set WSL2 as the default version.
+Evaluates the exit code to determine success. Assumes that wsl.exe is available
+in the system PATH.
+
+.OUTPUTS
+[bool]
+Returns $true if setting was successful; otherwise $false.
+#>
 function Update-WSL2AsDefault {
-    # This command is idempotent
-    $lines = & wsl --set-default-version 2 2>&1
+    $lines = & wsl.exe --set-default-version 2 2>&1  # This command is idempotent
     if ($LASTEXITCODE -ne 0) {
         $output = ($lines -join "`n").Replace("`0", "")
-        Write-Log "Setting default WSL version to 2 failed with exit code $LASTEXITCODE. Output:`n$output" -Fail
+        Write-Log "Setting default WSL version to WSL2 failed with exit code $LASTEXITCODE. Output:`n$output" -Fail
         return $false
     }
-    Write-Log "Default version is now set to WSL2." -Success
+    Write-Log "Default WSL version is now set to WSL2." -Success
 
     return $true
 }
@@ -226,21 +347,11 @@ function Update-WSL2AsDefault {
 # ==============================================================================
 Clear-Host
 
+
 Write-StepTitle "Checking software requirements"
 $null = Test-SoftwareRequirements
 
 Write-StepTitle "Checking hardware requirements"
 $null = Test-HardwareRequirements
 
-Write-StepTitle "Checking for WSL installation"
-if (Test-WSLInstallation) {
-    $null = Update-WSL
-}
-else {
-    $null = Install-WSL
-    $null = Update-WSL
-    $null = Test-WSLInstallation
-    $null = Update-WSL2AsDefault
-}
-
-Stop-ScriptAfterKeyPress
+Pause
