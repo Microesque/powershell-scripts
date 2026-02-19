@@ -1,5 +1,21 @@
 <#
 .SYNOPSIS
+Waits for a single key press before continuing execution.
+
+.DESCRIPTION
+Displays a prompt and blocks execution until the user presses a key. The key
+press is captured without requiring Enter and is not echoed to the console.
+#>
+function Wait-KeyPress {
+    [CmdletBinding()]
+    param ()
+
+    Write-Host "`nPress any key to continue..."
+    $null = $Host.UI.RawUI.ReadKey("NoEcho, IncludeKeyDown")
+}
+
+<#
+.SYNOPSIS
 Writes a formatted step title to the console.
 
 .DESCRIPTION
