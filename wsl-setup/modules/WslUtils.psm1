@@ -285,6 +285,32 @@ function Update-Wsl {
 
 <#
 .SYNOPSIS
+Checks whether WSL2 is installed.
+
+.DESCRIPTION
+Invokes wsl.exe --version to verify that a kernel version exists, which
+indicates WSL2 is installed. This doesn't necessarily mean WSL2 can be run,
+just that it's installed.
+
+.OUTPUTS
+[bool]
+Returns $true if WSL2 is installed; otherwise $false.
+#>
+function Test-Wsl2Installation {
+    [CmdletBinding()]
+    param()
+    
+    $lines = (& wsl.exe --version 2>$null) -replace "`0", "" -join "`n"
+    if ($lines -match "Kernel version: ") {
+        Write-Log "WSL2 is installed." -Success
+        return $true
+    }
+    Write-Log "WSL2 is not installed." -Fail
+    return $false
+}
+
+<#
+.SYNOPSIS
 Attempts to set the default WSL version to WSL2.
 
 .DESCRIPTION
