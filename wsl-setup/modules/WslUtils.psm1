@@ -1,6 +1,6 @@
 <#
 .SYNOPSIS
-Tests whether the system meets the software requirements for WSL2.
+Checks whether the system meets the software requirements for WSL2.
 
 .DESCRIPTION
 Performs a series of software compatibility checks for Windows Subsystem for
@@ -71,7 +71,7 @@ function Test-Wsl2SoftwareRequirements {
 
 <#
 .SYNOPSIS
-Tests whether the system meets the hardware requirements for WSL2.
+Checks whether the system meets the hardware requirements for WSL2.
 
 .DESCRIPTION
 Performs a series of hardware compatibility checks for Windows Subsystem for
@@ -149,11 +149,30 @@ function Test-Wsl2HardwareRequirements {
 
 <#
 .SYNOPSIS
-Tests whether WSL is installed and functional.
+Checks whether wsl.exe is available in the system PATH.
+
+.OUTPUTS
+[bool]
+Returns $true if wsl.exe is found in the system PATH; otherwise $false.
+#>
+function Test-WslExecutable {
+    [CmdletBinding()]
+    param()
+
+    if (-not (Get-Command wsl.exe -ErrorAction SilentlyContinue)) {
+        Write-Log "wsl.exe not found in the system PATH." -Fail
+        return $false
+    }
+    return $true
+}
+
+<#
+.SYNOPSIS
+Checks whether WSL is installed and functional.
 
 .DESCRIPTION
-Verifies the existence of wsl.exe and invokes wsl.exe -status to verify that the
-executable is operating correctly and is returning a successful exit code.
+Invokes wsl.exe -status to verify that the executable is operating correctly and
+is returning a successful exit code.
 
 .OUTPUTS
 [bool]
@@ -162,11 +181,7 @@ Returns $true if WSL is installed and operational; otherwise $false.
 function Test-WslInstallation {
     [CmdletBinding()]
     param()
-
-    if (-not (Get-Command wsl.exe -ErrorAction SilentlyContinue)) {
-        Write-Log "wsl.exe not found in the system PATH." -Fail
-        return $false
-    }
+    
     $null = & wsl.exe --status 2>$null
     if ($LASTEXITCODE -ne 0) {
         Write-Log "WSL is not currently installed, or the version may be too old." -Fail
@@ -189,7 +204,9 @@ function Write-WslVersion {
     param()
     
     $lines = & wsl.exe --version 2>$null
-    $msg = $lines | ForEach-Object { $_ -replace "`0", "" } | Where-Object { $_ -match "WSL version:" }
+    $msg = $lines |
+    ForEach-Object { $_ -replace "`0", "" } |
+    Where-Object { $_ -match "WSL version:|Kernel version:" }
     if ($msg) {
         $msg | ForEach-Object { Write-Log $_ -Info }
     }
