@@ -1,5 +1,5 @@
 # ==============================================================================
-# ================================= ROLE CHECK =================================
+# ================================= ADMIN CHECK ================================
 # ==============================================================================
 $currentPrincipal = New-Object Security.Principal.WindowsPrincipal([Security.Principal.WindowsIdentity]::GetCurrent())
 $isAdmin = $currentPrincipal.IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)
@@ -17,9 +17,10 @@ Import-Module (Join-Path $ModulesPath "WslUtils.psm1") -Force -ErrorAction Stop
 # ==============================================================================
 # =================================== SCRIPT ===================================
 # ==============================================================================
-Write-Host ""
 
 $exitCode = 0
+
+Write-Host ""
 
 Write-StepTitle "Checking software requirements"
 if (-not (Test-SoftwareRequirements)) { $exitCode = 1 }
