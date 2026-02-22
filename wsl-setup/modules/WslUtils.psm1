@@ -149,11 +149,16 @@ function Test-Wsl2HardwareRequirements {
 
 <#
 .SYNOPSIS
-Checks whether wsl.exe is available in the system PATH.
+Checks whether wsl.exe is available and suitable.
+
+.DESCRIPTION
+Checks whether wsl.exe is available in the system PATH. Invokes wsl.exe -status
+to verify that the executable is operating correctly and returns a successful
+exit code.
 
 .OUTPUTS
 [bool]
-Returns $true if wsl.exe is found in the system PATH; otherwise $false.
+Returns $true if wsl.exe is available and suitable; otherwise $false.
 #>
 function Test-WslExecutable {
     [CmdletBinding()]
@@ -163,6 +168,13 @@ function Test-WslExecutable {
         Write-Log "wsl.exe not found in the system PATH." -Fail
         return $false
     }
+    
+    $lines = (& wsl.exe --help 2>&1) -replace "`0", "" -join "`n"
+    if ($lines -notmatch "--status") {
+        Write-Log "wsl.exe found but the version may be too old." -Fail
+        return $false
+    }
+    Write-Log "wsl.exe is available and suitable." -Success
     return $true
 }
 
@@ -171,7 +183,7 @@ function Test-WslExecutable {
 Checks whether WSL is installed and functional.
 
 .DESCRIPTION
-Invokes wsl.exe -status to verify that the executable is operating correctly and
+Invokes wsl.exe --status to verify that the executable is operating correctly and
 is returning a successful exit code.
 
 .OUTPUTS
@@ -182,12 +194,12 @@ function Test-WslInstallation {
     [CmdletBinding()]
     param()
     
-    $null = & wsl.exe --status 2>$null
-    if ($LASTEXITCODE -ne 0) {
-        Write-Log "WSL is not currently installed, or the version may be too old." -Fail
+    $lines = (& wsl.exe --status 2>&1) -replace "`0", "" -join "`n"
+    if ($lines -match "is not installed") {
+        Write-Log "WSL is not installed." -Info
         return $false
     }
-    Write-Log "WSL is currently installed." -Success
+    Write-Log "WSL is already installed." -Info
     return $true
 }
 
@@ -217,36 +229,6 @@ function Write-WslVersion {
 
 <#
 .SYNOPSIS
-Attempts to update WSL to the latest version.
-
-.DESCRIPTION
-Executes wsl.exe --update to initiate the update. Evaluates the exit code to
-determine success. Assumes that wsl.exe is available in the system PATH.
-
-.OUTPUTS
-[bool]
-Returns $true if update was successful; otherwise $false.
-#>
-function Update-Wsl {
-    $lines = & wsl.exe --update 2>&1
-    $output = ($lines -join "`n").Replace("`0", "")
-    if ($LASTEXITCODE -ne 0) {
-        Write-Log "WSL update failed with exit code $LASTEXITCODE. Output:`n$output" -Fail
-        return $false
-    }
-
-    if ($output -match "already") {
-        Write-Log "WSL is up to date." -Success
-    }
-    else {
-        Write-Log "WSL successfully updated." -Success
-    }
-
-    return $true
-}
-
-<#
-.SYNOPSIS
 Attempts to install WSL.
 
 .DESCRIPTION
@@ -266,6 +248,37 @@ function Install-Wsl {
         return $false
     }
     Write-Log "WSL installed successfully." -Success
+
+    return $true
+}
+
+<#
+.SYNOPSIS
+Attempts to update WSL to the latest version.
+
+.DESCRIPTION
+Executes wsl.exe --update to initiate the update. Evaluates the exit code to
+determine success. Assumes that wsl.exe is available in the system PATH.
+
+.OUTPUTS
+[bool]
+Returns $true if update was successful; otherwise $false.
+#>
+function Update-Wsl {
+    Write-Log "Updating WSL..." -Info
+    $lines = & wsl.exe --update 2>&1
+    $output = ($lines -join "`n").Replace("`0", "")
+    if ($LASTEXITCODE -ne 0) {
+        Write-Log "WSL update failed with exit code $LASTEXITCODE. Output:`n$output" -Fail
+        return $false
+    }
+
+    if ($output -match "already") {
+        Write-Log "WSL is up to date." -Success
+    }
+    else {
+        Write-Log "WSL successfully updated." -Success
+    }
 
     return $true
 }
