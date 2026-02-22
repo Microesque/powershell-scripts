@@ -6,6 +6,23 @@ Waits for a single key press before continuing execution.
 Displays a prompt and blocks execution until the user presses a key. The key
 press is captured without requiring Enter and is not echoed to the console.
 #>
+function Test-IsAdministrator {
+    [CmdletBinding()]
+    param ()
+
+    $identity = [Security.Principal.WindowsIdentity]::GetCurrent()
+    $principal = New-Object Security.Principal.WindowsPrincipal($identity)
+    return $principal.IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)
+}
+
+<#
+.SYNOPSIS
+Waits for a single key press before continuing execution.
+
+.DESCRIPTION
+Displays a prompt and blocks execution until the user presses a key. The key
+press is captured without requiring Enter and is not echoed to the console.
+#>
 function Wait-KeyPress {
     [CmdletBinding()]
     param ()
