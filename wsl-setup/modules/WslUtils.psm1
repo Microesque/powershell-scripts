@@ -16,7 +16,7 @@ Checks performed:
 [bool]
 Returns $true if all requirements are met, otherwise $false.
 #>
-function Test-SoftwareRequirements {
+function Test-Wsl2SoftwareRequirements {
     [CmdletBinding()]
     param()
 
@@ -87,7 +87,7 @@ Checks performed:
 [bool]
 Returns $true if all requirements are met, otherwise $false.
 #>
-function Test-HardwareRequirements {
+function Test-Wsl2HardwareRequirements {
     [CmdletBinding()]
     param()
 
@@ -159,7 +159,7 @@ executable is operating correctly and is returning a successful exit code.
 [bool]
 Returns $true if WSL is installed and operational; otherwise $false.
 #>
-function Test-WSLInstallation {
+function Test-WslInstallation {
     [CmdletBinding()]
     param()
 
@@ -184,7 +184,7 @@ Logs the installed WSL version.
 Invokes wsl.exe --version to retrieve version information. Evaluates the exit
 code to determine success. Assumes that wsl.exe is available in the system PATH.
 #>
-function Write-WSLVersion {
+function Write-WslVersion {
     [CmdletBinding()]
     param()
     
@@ -210,7 +210,7 @@ determine success. Assumes that wsl.exe is available in the system PATH.
 [bool]
 Returns $true if update was successful; otherwise $false.
 #>
-function Update-WSL {
+function Update-Wsl {
     $lines = & wsl.exe --update 2>&1
     $output = ($lines -join "`n").Replace("`0", "")
     if ($LASTEXITCODE -ne 0) {
@@ -240,7 +240,7 @@ to determine success. Assumes that wsl.exe is available in the system PATH.
 [bool]
 Returns $true if installation was successful; otherwise $false.
 #>
-function Install-WSL {
+function Install-Wsl {
     Write-Log "Installing WSL..." -Info
     $lines = & wsl.exe --install --no-distribution 2>&1
     if ($LASTEXITCODE -ne 0) {
@@ -266,7 +266,7 @@ in the system PATH.
 [bool]
 Returns $true if setting was successful; otherwise $false.
 #>
-function Update-WSL2AsDefault {
+function Update-Wsl2AsDefault {
     $lines = & wsl.exe --set-default-version 2 2>&1  # This command is idempotent
     if ($LASTEXITCODE -ne 0) {
         $output = ($lines -join "`n").Replace("`0", "")

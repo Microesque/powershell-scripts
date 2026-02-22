@@ -23,10 +23,10 @@ $exitCode = 0
 Write-Host ""
 
 Write-StepTitle "Checking software requirements"
-if (-not (Test-SoftwareRequirements)) { $exitCode = 1 }
+if (-not (Test-Wsl2SoftwareRequirements)) { $exitCode = 1 }
 
 Write-StepTitle "Checking hardware requirements"
-if (-not (Test-HardwareRequirements)) { $exitCode = 1 }
+if (-not (Test-Wsl2HardwareRequirements)) { $exitCode = 1 }
 
 Write-Host ""
 
