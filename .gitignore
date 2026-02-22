@@ -2,7 +2,8 @@
 .*
 !.gitignore
 
-# Ignore TODO notes
+# Ignore personal files
+TEST.ps1
 TODO.md
 
 # Ignore data files
