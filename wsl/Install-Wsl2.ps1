@@ -17,16 +17,6 @@ if (-not (Test-IsAdministrator)) {
 # ==============================================================================
 Write-Host ""
 
-# Check requirements
-Write-StepTitle "Checking software requirements"
-$test1 = Test-Wsl2SoftwareRequirements
-Write-StepTitle "Checking hardware requirements"
-$test2 = Test-Wsl2HardwareRequirements
-if (-not ($test1 -and $test2)) {
-    Write-Host ""
-    exit 1
-}
-
 # Check faulty installation
 Write-StepTitle "Checking current installation"
 if (-not (Test-WslExecutable)) {
