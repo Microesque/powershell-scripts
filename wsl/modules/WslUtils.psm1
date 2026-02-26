@@ -311,27 +311,163 @@ function Test-Wsl2Installation {
 
 <#
 .SYNOPSIS
-Attempts to set the default WSL version to WSL2.
+Checks whether a specific WSL distribution is installed.
 
 .DESCRIPTION
-Executes wsl.exe --set-default-version 2 to set WSL2 as the default version.
-Evaluates the exit code to determine success. Assumes that wsl.exe is available
-in the system PATH.
+Executes `wsl.exe --list --quiet` to retrieve the installed distributions and
+checks whether the specified distribution is present. Assumes `wsl.exe` is
+available in the system PATH and supports this command.
+
+.PARAMETER Distro
+The name of the WSL distribution to check (e.g., 'Debian, 'Ubuntu-22.04').
 
 .OUTPUTS
 [bool]
-Returns $true if setting was successful; otherwise $false.
+Returns $true if the specified distribution is installed; otherwise $false.
+
+.NOTES
+Throws if `wsl.exe` returns a non-zero exit code.
+#>
+function Test-WSLDistroInstallation {
+    [CmdletBinding()]
+    [OutputType([bool])]
+    param(
+        [Parameter(Mandatory = $true)]
+        [string]$Distro
+    )
+
+    $output = & wsl.exe --list --quiet 2>&1
+    if ($LASTEXITCODE -ne 0) {
+        $output = ($output | Out-String).Replace("`0", "").Trim()
+        throw "wsl.exe failed with exit code $LASTEXITCODE. Output:`n$output"
+    }
+    $distros = @($output | ForEach-Object { $_.ToString().Replace("`0", "").Trim() } | Where-Object { $_ })
+    return $distros -contains $Distro
+}
+
+<#
+.SYNOPSIS
+Returns the current default WSL version.
+
+.DESCRIPTION
+Executes `wsl.exe --status` and parses its output to determine the current
+default WSL version. Assumes `wsl.exe` is available in the system PATH and
+supports this command.
+
+.OUTPUTS
+[int]
+The default WSL version reported by `wsl.exe`.
+
+.NOTES
+Throws if `wsl.exe` returns a non-zero exit code.
+Throws if the output cannot be parsed for a valid version number.
+#>
+function Get-WslDefaultVersion {
+    [CmdletBinding()]
+    [OutputType([int])]
+    param()
+
+    $output = & wsl.exe --status 2>&1
+    $output = ($output | Out-String).Replace("`0", "").Trim()
+    
+    if ($LASTEXITCODE -ne 0) {
+        throw "wsl.exe failed with exit code $LASTEXITCODE. Output:`n$output"
+    }
+
+    if ($output -match "Default Version:\s+(\d+)") {
+        return [int]$Matches[1]
+    }
+    throw "WSL returned an unknown default version. Output:`n$output"
+}
+
+<#
+.SYNOPSIS
+Sets WSL2 as the default WSL version.
+
+.DESCRIPTION
+Executes `wsl.exe --set-default-version 2` to set WSL2 as the default version.
+Assumes `wsl.exe` is available in the system PATH and supports this command.
+
+.NOTES
+Throws if `wsl.exe` returns a non-zero exit code.
 #>
 function Update-Wsl2AsDefault {
-    $lines = & wsl.exe --set-default-version 2 2>&1  # This command is idempotent
-    if ($LASTEXITCODE -ne 0) {
-        $output = ($lines -join "`n").Replace("`0", "")
-        Write-Log "Setting default WSL version to WSL2 failed with exit code $LASTEXITCODE. Output:`n$output" -Fail
-        return $false
-    }
-    Write-Log "Default WSL version is now set to WSL2." -Success
+    [CmdletBinding()]
+    param()
 
-    return $true
+    $output = & wsl.exe --set-default-version 2 2>&1  # Idempotent
+    if ($LASTEXITCODE -ne 0) {
+        $output = ($output | Out-String).Replace("`0", "").Trim()
+        throw "wsl.exe failed with exit code $LASTEXITCODE. Output:`n$output"
+    }
+}
+
+<#
+.SYNOPSIS
+Installs the specified WSL distribution.
+
+.DESCRIPTION
+Executes `wsl.exe --install -d $Distro --no-launch` to install the specified
+WSL distribution. Assumes the specified distribution is not currently installed.
+Assumes `wsl.exe` is available in the system PATH and supports this command.
+
+.PARAMETER Distro
+The name of the WSL distribution to install (e.g., 'Debian, 'Ubuntu-22.04').
+
+.NOTES
+Throws if `wsl.exe` returns a non-zero exit code.
+#>
+function Install-WSLDistro {
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory = $true)]
+        [string]$Distro
+    )
+
+    $output = & wsl.exe --install -d $Distro --no-launch 2>&1
+    if ($LASTEXITCODE -ne 0) {
+        $output = ($output | Out-String).Replace("`0", "").Trim()
+        throw "wsl.exe failed with exit code $LASTEXITCODE. Output:`n$output"
+    }
+}
+
+<#
+.SYNOPSIS
+Executes the specified bash command as root in a WSL distribution.
+
+.DESCRIPTION
+Executes `wsl.exe -d $Distro --user root -- bash -c "`"$Command`""` to execute
+the specified bash command inside the specified WSL distribution. Assumes
+`wsl.exe` is available in the system PATH and supports this command.
+
+.PARAMETER Distro
+The name of the WSL distribution to run the command on (e.g., 'Debian, 'Ubuntu-22.04').
+
+.PARAMETER Command
+The Bash command to execute inside the WSL distribution.
+
+.NOTES
+Throws if `wsl.exe` itself returns a non-zero exit code.
+Throws if the command itself fails and returns a non-zero exit code.
+#>
+function Invoke-WSLRootCommand {
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory = $true)]
+        [string]$Distro,
+
+        [Parameter(Mandatory = $true)]
+        [string]$Command
+    )
+
+    $output = wsl.exe -d $Distro --user root -- bash -c "`"$Command`"" 2>&1
+    if ($LASTEXITCODE -eq -1) {
+        $output = ($output | Out-String).Replace("`0", "").Trim()
+        throw "wsl.exe failed with exit code $LASTEXITCODE. Output:`n$output"
+    }
+    elseif ($LASTEXITCODE -ne 0) {
+        throw "Command [$Command] failed in WSL distribution [$Distro]. Output:`n$output"
+    }
 }
 
 Export-ModuleMember -Function *
