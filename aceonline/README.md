@@ -1,5 +1,23 @@
+# SCRIPT USAGE
+
+>- The `modules` directory contains reusable functions required by the main scripts in this directory. Therefore, the scripts cannot function correctly if used without the `modules` directory.
+>- All scripts are interactive by default. You can use the `-NonInteractive` parameter to suppress prompts and require explicit parameters. Without the `-NonInteractive` switch, any supplied parameters will be ignored. Ex:
+```powershell
+# Give 30000 cash points to the account `CoolAccount`
+powershell.exe -NoProfile -ExecutionPolicy Bypass `
+    -File "Update-AccountCashPoint.ps1" `
+    -MssqlServerAddress "192.168.1.100" `
+    -MssqlUsername "sa" `
+    -MssqlPassword "123asd" `
+    -AccountName "CoolAccount" `
+    -Value "+30000" `
+    -NonInteractive
+```
+>- All functions/scripts are fully documented. You can access the documentation with the PowerShell `-Help` parameter, or view them directly at the top of each function/script.
 
 ---
+
+# TABLE INFO
 
 **`atum2_db_1:`**
 - [atum2_db_1.dbo.td_Character](#atum2_db_1dbotd_character)
