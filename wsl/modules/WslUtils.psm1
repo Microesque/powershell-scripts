@@ -257,30 +257,26 @@ function Install-Wsl {
 Attempts to update WSL to the latest version.
 
 .DESCRIPTION
-Executes wsl.exe --update to initiate the update. Evaluates the exit code to
-determine success. Assumes that wsl.exe is available in the system PATH.
+Executes `wsl.exe --update` to attempt updating WSL. Parses the output to
+determine whether WSL was already up to date and returns a boolean result.
 
 .OUTPUTS
 [bool]
-Returns $true if update was successful; otherwise $false.
+Returns $true if WSL was already up to date; otherwise $false.
+
+.NOTES
+Throws if `wsl.exe` returns a non-zero exit code.
 #>
 function Update-Wsl {
-    Write-Log "Updating WSL..." -Info
-    $lines = & wsl.exe --update 2>&1
-    $output = ($lines -join "`n").Replace("`0", "")
+    [CmdletBinding()]
+    param()
+
+    $output = & wsl.exe --update 2>&1
+    $output = ($output | Out-String).Replace("`0", "").Trim()
     if ($LASTEXITCODE -ne 0) {
-        Write-Log "WSL update failed with exit code $LASTEXITCODE. Output:`n$output" -Fail
-        return $false
+        throw "wsl.exe failed with exit code $LASTEXITCODE. Output:`n$output"
     }
-
-    if ($output -match "already") {
-        Write-Log "WSL is up to date." -Success
-    }
-    else {
-        Write-Log "WSL successfully updated." -Success
-    }
-
-    return $true
+    return ($output -match "already")
 }
 
 <#
@@ -309,7 +305,7 @@ function Test-Wsl2Installation {
     if ($LASTEXITCODE -ne 0) {
         throw "wsl.exe failed with exit code $LASTEXITCODE. Output:`n$output"
     }
-    return $output -match "Kernel version: "
+    return ($output -match "Kernel version: ")
 }
 
 <#
@@ -345,7 +341,7 @@ function Test-WSLDistroInstallation {
         throw "wsl.exe failed with exit code $LASTEXITCODE. Output:`n$output"
     }
     $distros = @($output | ForEach-Object { $_.ToString().Replace("`0", "").Trim() } | Where-Object { $_ })
-    return $distros -contains $Distro
+    return ($distros -contains $Distro)
 }
 
 <#
@@ -378,7 +374,7 @@ function Get-WslDefaultVersion {
     }
 
     if ($output -match "Default Version:\s+(\d+)") {
-        return [int]$Matches[1]
+        return ([int]$Matches[1])
     }
     throw "WSL returned an unknown default version. Output:`n$output"
 }
