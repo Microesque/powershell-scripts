@@ -205,25 +205,47 @@ function Test-WslInstallation {
 
 <#
 .SYNOPSIS
-Logs the installed WSL version.
+Retrieves the installed WSL and kernel versions.
 
 .DESCRIPTION
-Invokes wsl.exe --version to retrieve version information. Evaluates the exit
-code to determine success. Assumes that wsl.exe is available in the system PATH.
+Executes `wsl.exe --version` to obtain version information. Parses the output 
+to extract the WSL and kernel versions, and returns them as a custom object.
+Assumes `wsl.exe` is available in the system PATH and supports this command.
+
+.OUTPUTS
+[PSCustomObject]
+Returns an object with the following properties:
+    - [string] WslVersion: The installed WSL version. If version information
+    can't be determined, will return $null instead.
+    - [string] KernelVersion: The installed Linux kernel version used by WSL. If
+    version information can't be determined, will return $null instead.
+
+.NOTES
+Throws if `wsl.exe` returns a non-zero exit code.
 #>
-function Write-WslVersion {
+function Get-WslVersion {
     [CmdletBinding()]
     param()
     
-    $lines = & wsl.exe --version 2>$null
-    $msg = $lines |
-    ForEach-Object { $_ -replace "`0", "" } |
-    Where-Object { $_ -match "WSL version:|Kernel version:" }
-    if ($msg) {
-        $msg | ForEach-Object { Write-Log $_ -Info }
+    $output = & wsl.exe --version 2>1
+    $output = ($output | Out-String).Replace("`0", "").Trim()
+    if ($LASTEXITCODE -ne 0) {
+        throw "wsl.exe failed with exit code $LASTEXITCODE. Output:`n$output"
     }
-    else {
-        Write-Log "WSL version information not available." -Info
+
+    $wslVersion = $null
+    if ($output -match "WSL version:\s*(\S+)") {
+        $wslVersion = $Matches[1]
+    }
+
+    $kernelVersion = $null
+    if ($output -match "Kernel version:\s*(\S+)") {
+        $kernelVersion = $Matches[1]
+    }
+    
+    return [PSCustomObject]@{
+        WslVersion    = $wslVersion
+        KernelVersion = $kernelVersion
     }
 }
 
@@ -233,7 +255,7 @@ Attempts to install WSL.
 
 .DESCRIPTION
 Executes `wsl.exe --install --no-distribution` to initiate the installation.
-Evaluates the exit code to determine success. Assumes that wsl.exe is available
+Evaluates the exit code to determine success. Assumes that `wsl.exe` is available
 in the system PATH.
 
 .NOTES
@@ -257,6 +279,7 @@ Attempts to update WSL to the latest version.
 .DESCRIPTION
 Executes `wsl.exe --update` to attempt updating WSL. Parses the output to
 determine whether WSL was already up to date and returns a boolean result.
+Assumes `wsl.exe` is available in the system PATH and supports this command.
 
 .OUTPUTS
 [bool]
@@ -284,7 +307,8 @@ Checks whether WSL2 is installed.
 .DESCRIPTION
 Executes `wsl.exe --version` to determine if a kernel version is present, which
 indicates that WSL2 is installed. This does not guarantee that WSL2 can run
-successfully; it only confirms that it is installed.
+successfully; it only confirms that it is installed. Assumes `wsl.exe` is
+available in the system PATH and supports this command.
 
 .OUTPUTS
 [bool]
