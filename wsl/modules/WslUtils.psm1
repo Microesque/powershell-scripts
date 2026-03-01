@@ -232,24 +232,22 @@ function Write-WslVersion {
 Attempts to install WSL.
 
 .DESCRIPTION
-Executes wsl.exe --install to initiate the installation. Evaluates the exit code
-to determine success. Assumes that wsl.exe is available in the system PATH.
+Executes `wsl.exe --install --no-distribution` to initiate the installation.
+Evaluates the exit code to determine success. Assumes that wsl.exe is available
+in the system PATH.
 
-.OUTPUTS
-[bool]
-Returns $true if installation was successful; otherwise $false.
+.NOTES
+Throws if `wsl.exe` returns a non-zero exit code.
 #>
 function Install-Wsl {
-    Write-Log "Installing WSL..." -Info
-    $lines = & wsl.exe --install --no-distribution 2>&1
-    if ($LASTEXITCODE -ne 0) {
-        $output = ($lines -join "`n").Replace("`0", "")
-        Write-Log "WSL installation failed with exit code $LASTEXITCODE. Output:`n$output" -Fail
-        return $false
-    }
-    Write-Log "WSL installed successfully." -Success
+    [CmdletBinding()]
+    param()
 
-    return $true
+    $output = & wsl.exe --install --no-distribution 2>&1
+    if ($LASTEXITCODE -ne 0) {
+        $output = ($output | Out-String).Replace("`0", "").Trim()
+        throw "wsl.exe failed with exit code $LASTEXITCODE. Output:`n$output"
+    }
 }
 
 <#
