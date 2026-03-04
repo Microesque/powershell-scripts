@@ -180,27 +180,30 @@ function Test-WslExecutable {
 
 <#
 .SYNOPSIS
-Checks whether WSL is installed and functional.
+Checks whether WSL is installed.
 
 .DESCRIPTION
-Invokes wsl.exe --status to verify that the executable is operating correctly and
-is returning a successful exit code.
+Executes `wsl.exe --status` to determine if the WSL is installed. Assumes
+`wsl.exe` is available in the system PATH and supports this command.
 
 .OUTPUTS
 [bool]
-Returns $true if WSL is installed and operational; otherwise $false.
+Returns $true if WSL is installed; otherwise $false.
+
+.NOTES
+Throws if `wsl.exe` returns a non-zero exit code.
 #>
 function Test-WslInstallation {
     [CmdletBinding()]
+    [OutputType([bool])]
     param()
     
-    $lines = (& wsl.exe --status 2>&1) -replace "`0", "" -join "`n"
-    if ($lines -match "is not installed") {
-        Write-Log "WSL is not installed." -Info
-        return $false
+    $output = & wsl.exe --status 2>&1
+    $output = ($output | Out-String).Replace("`0", "").Trim()
+    if ($LASTEXITCODE -ne 0) {
+        throw "wsl.exe failed with exit code $LASTEXITCODE. Output:`n$output"
     }
-    Write-Log "WSL is already installed." -Info
-    return $true
+    return ($output -notmatch "is not installed")
 }
 
 <#
