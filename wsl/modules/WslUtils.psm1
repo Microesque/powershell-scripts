@@ -149,33 +149,35 @@ function Test-Wsl2HardwareRequirements {
 
 <#
 .SYNOPSIS
-Checks whether wsl.exe is available and suitable.
+Checks whether `wsl.exe` is available in the system PATH.
 
 .DESCRIPTION
-Checks whether wsl.exe is available in the system PATH. Invokes wsl.exe -status
-to verify that the executable is operating correctly and returns a successful
-exit code.
+Checks whether `wsl.exe` is available in the system PATH. Also executes
+`wsl.exe --help` to verify that the executable at leasts supports the `--status`
+option.
 
 .OUTPUTS
 [bool]
-Returns $true if wsl.exe is available and suitable; otherwise $false.
+Returns $true if `wsl.exe` is available ins the system PATH; otherwise $false.
+
+.NOTES
+Throws if `wsl.exe` returns a non-zero exit code.
 #>
 function Test-WslExecutable {
     [CmdletBinding()]
+    [OutputType([bool])]
     param()
 
     if (-not (Get-Command wsl.exe -ErrorAction SilentlyContinue)) {
-        Write-Log "wsl.exe not found in the system PATH." -Fail
         return $false
     }
-    
-    $lines = (& wsl.exe --help 2>&1) -replace "`0", "" -join "`n"
-    if ($lines -notmatch "--status") {
-        Write-Log "wsl.exe found but the version may be too old." -Fail
-        return $false
+
+    $output = & wsl.exe --help 2>&1
+    $output = ($output | Out-String).Replace("`0", "").Trim()
+    if ($LASTEXITCODE -ne 0) {
+        throw "wsl.exe failed with exit code $LASTEXITCODE. Output:`n$output"
     }
-    Write-Log "wsl.exe is available and suitable." -Success
-    return $true
+    return ($output -match "--status")
 }
 
 <#
