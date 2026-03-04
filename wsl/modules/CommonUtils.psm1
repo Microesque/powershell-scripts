@@ -1,13 +1,33 @@
 <#
 .SYNOPSIS
-Waits for a single key press before continuing execution.
+Provides general-purpose utility functions and standardized console output for
+scripts.
 
 .DESCRIPTION
-Displays a prompt and blocks execution until the user presses a key. The key
-press is captured without requiring Enter and is not echoed to the console.
+This module contains a set of reusable helper functions for common scripting
+tasks. Also includes functions to produce standardized output to the console for
+uniform presentation of scripts.
+#>
+
+# ==============================================================================
+# ==============================================================================
+# ==============================================================================
+
+<#
+.SYNOPSIS
+Checks whether the current PowerShell session is running with admin privileges.
+
+.DESCRIPTION
+Evaluates the Windows security context of the current process and checks 
+if it belongs to the Administrators group.
+
+.OUTPUTS
+[bool]
+Returns $true if the current session has admin privileges; otherwise $false.
 #>
 function Test-IsAdministrator {
     [CmdletBinding()]
+    [OutputType([bool])]
     param ()
 
     $identity = [Security.Principal.WindowsIdentity]::GetCurrent()

@@ -1,5 +1,19 @@
 <#
 .SYNOPSIS
+Provides utility functions for interacting with MSSQL servers.
+
+.DESCRIPTION
+This module contains functions to manage, query, and perform operations related
+to Microsoft SQL Server (MSSQL). Functions include creating connections, making
+queries, and updating tables.
+#>
+
+# ==============================================================================
+# ==============================================================================
+# ==============================================================================
+
+<#
+.SYNOPSIS
 Creates a Microsoft SQL Server connection object.
 
 .DESCRIPTION
@@ -23,8 +37,11 @@ A [PSCredential] object containing the SQL Server username and password.
 
 .OUTPUTS
 [System.Data.SqlClient.SqlConnection]
+Returns the SQL connection object. The connection is not yet opened.
 #>
 function Get-MSSQLConnection {
+    [CmdletBinding()]
+    [OutputType([System.Data.SqlClient.SqlConnection])]
     param (
         [Parameter(Mandatory)]
         [string]$ServerAddress,
@@ -80,6 +97,7 @@ returns NULL.
 #>
 function Get-MSSQLScalarValue {
     [CmdletBinding()]
+    [OutputType([object])]
     param (
         [Parameter(Mandatory)]
         [string]$ServerAddress,
@@ -167,6 +185,7 @@ The number of rows affected.
 #>
 function Set-MSSQLColumnValues {
     [CmdletBinding()]
+    [OutputType([int])]
     param (
         [Parameter(Mandatory)]
         [string]$ServerAddress,
@@ -251,6 +270,7 @@ The number of rows affected.
 #>
 function Add-MSSQLRowIntoTable {
     [CmdletBinding()]
+    [OutputType([int])]
     param (
         [Parameter(Mandatory)]
         [string]$ServerAddress,
@@ -333,11 +353,13 @@ The name of the column to query.
 Optional condition to append to the WHERE clause of the query.
 
 .OUTPUTS
+[object]
 Returns the scalar result of the query. If the resulting table was empty,
 returns NULL.
 #>
 function Get-MSSQLMaxColumnValue {
     [CmdletBinding()]
+    [OutputType([object])]
     param (
         [Parameter(Mandatory)]
         [string]$ServerAddress,

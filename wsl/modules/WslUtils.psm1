@@ -1,5 +1,20 @@
 <#
 .SYNOPSIS
+Provides utility functions for interacting with WSL.
+
+.DESCRIPTION
+This module contains functions to manage, query, and perform operations related
+to Windows Subsystem for Linux (WSL). Functions include checking WSL versions,
+testing installations, and initiating WSL-related commands. This is done mainly
+via interacting with `wsl.exe` in the system PATH.
+#>
+
+# ==============================================================================
+# ==============================================================================
+# ==============================================================================
+
+<#
+.SYNOPSIS
 Checks whether `wsl.exe` is available in the system PATH.
 
 .DESCRIPTION
