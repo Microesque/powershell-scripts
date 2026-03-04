@@ -8,5 +8,6 @@
 >   2. `Install-Wsl2.ps1` -> Installs WSL2.
 >   3. `Initialize-Wsl2Debian.ps1` -> Installs Debian and configures packages.
 >- While scripts can be run individually, each assumes that the preceding steps have been completed. For example, `Install-Wsl2.ps1` expects that the system already meets WSL2 requirements.
+>- All functions/scripts are fully documented. You can access the documentation with the PowerShell `-Help` parameter, or view them directly at the top of each function/script.
 
 ---
