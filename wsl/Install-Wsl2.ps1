@@ -15,38 +15,73 @@ if (-not (Test-IsAdministrator)) {
 # ==============================================================================
 # =================================== SCRIPT ===================================
 # ==============================================================================
-Write-Host ""
+Write-StepTitle "Installing WSL"
 
 # Check faulty installation
-Write-StepTitle "Checking current installation"
-if (-not (Test-WslExecutable)) {
-    Write-Host ""
+try {
+    if (Test-WslExecutable) {
+        Write-Log "wsl.exe is available and suitable." -Success
+    }
+    else {
+        Write-Log "wsl.exe not found in the system PATH or might be too old." -Fail
+        exit 1
+    }
+}
+catch {
+    Write-Log "Failed to check wsl.exe in the system PATH.`nReason:`n$_" -Fail
     exit 1
 }
 
 # Install/update
 $isSuccess = $false
-if (Test-WslInstallation) {
-    Write-WslVersion
-    Write-StepTitle "Updating WSL"
-    if (Update-Wsl) {
+try {
+    if (Test-WslInstallation) {
+        # Install
+        Write-Log "WSL is already installed." -Info
+        $versions = Get-WslVersion
+        if ($null -eq $versions.WslVersion) { $versions.WslVersion = "null" }
+        if ($null -eq $versions.KernelVersion) { $versions.KernelVersion = "null" }
+        Write-Log "WSL version: $($versions.WslVersion)" -Info
+        Write-Log "Kernel version: $($versions.KernelVersion)" -Info
+
+        Write-Log "Updating WSL..." -Info
+        if (Update-Wsl) {
+            Write-Log "WSL is up to date." -Success
+        }
+        else {
+            Write-Log "WSL successfully updated." -Success
+            $versions = Get-WslVersion
+            if ($null -eq $versions.WslVersion) { $versions.WslVersion = "null" }
+            if ($null -eq $versions.KernelVersion) { $versions.KernelVersion = "null" }
+            Write-Log "WSL version: $($versions.WslVersion)" -Info
+            Write-Log "Kernel version: $($versions.KernelVersion)" -Info
+        }
         $isSuccess = $true
-        Write-WslVersion
+    }
+    else {
+        # Update
+        Write-Log "WSL is not installed." -Info
+        Write-Log "Installing WSL..." -Info
+        Install-Wsl
+        Write-Log "WSL successfully installed." -Success
+        $versions = Get-WslVersion
+        if ($null -eq $versions.WslVersion) { $versions.WslVersion = "null" }
+        if ($null -eq $versions.KernelVersion) { $versions.KernelVersion = "null" }
+        Write-Log "WSL version: $($versions.WslVersion)" -Info
+        Write-Log "Kernel version: $($versions.KernelVersion)" -Info
+        $isSuccess = $true
+    }
+    
+    # Final check
+    if (-not (Test-Wsl2Installation)) {
+        $isSuccess = $false
     }
 }
-else {
-    Write-StepTitle "Installing WSL"
-    if (Install-Wsl) {
-        $isSuccess = $true
-        Write-WslVersion
-    }
+catch {
+    Write-Log "Failed to check wsl.exe in the system PATH.`nReason:`n$_" -Fail
+    exit 1
 }
 
-# Check WSL2 installation
-if (-not (Test-Wsl2Installation)) {
-    $isSuccess = $false
-}
-Write-Host ""
 if ($isSuccess) {
     exit 0
 }

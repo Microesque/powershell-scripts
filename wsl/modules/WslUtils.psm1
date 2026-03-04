@@ -25,9 +25,10 @@ function Test-WslExecutable {
 
     $output = & wsl.exe --help 2>&1
     $output = ($output | Out-String).Replace("`0", "").Trim()
-    if ($LASTEXITCODE -ne 0) {
-        throw "wsl.exe failed with exit code $LASTEXITCODE. Output:`n$output"
-    }
+    # & wsl.exe --help always seems to return -1
+    # if ($LASTEXITCODE -ne 0) { 
+    #     throw "wsl.exe failed with exit code $LASTEXITCODE. Output:`n$output"
+    # }
     return ($output -match "--status")
 }
 
@@ -53,10 +54,14 @@ function Test-WslInstallation {
     
     $output = & wsl.exe --status 2>&1
     $output = ($output | Out-String).Replace("`0", "").Trim()
-    if ($LASTEXITCODE -ne 0) {
+    # Returns exitcode 50 if not installed
+    if ($LASTEXITCODE -ne 0 -and $LASTEXITCODE -ne 50) {
         throw "wsl.exe failed with exit code $LASTEXITCODE. Output:`n$output"
     }
-    return ($output -notmatch "is not installed")
+    if ($LASTEXITCODE -eq 50 -or $output -match "is not installed") {
+        return $false
+    }
+    return $true
 }
 
 <#
@@ -83,7 +88,7 @@ function Get-WslVersion {
     [CmdletBinding()]
     param()
     
-    $output = & wsl.exe --version 2>1
+    $output = & wsl.exe --version 2>&1
     $output = ($output | Out-String).Replace("`0", "").Trim()
     if ($LASTEXITCODE -ne 0) {
         throw "wsl.exe failed with exit code $LASTEXITCODE. Output:`n$output"
