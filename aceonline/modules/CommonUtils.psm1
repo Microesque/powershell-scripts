@@ -289,9 +289,9 @@ function Assert-TrimStrIsValidAccountType {
     )
 
     $Value = Assert-TrimStrIsNotNullOrEmpty $Value -Name $Name
-    if ($AccountType -ne "0" -and
-        $AccountType -ne "128" -and
-        $AccountType -ne "256") {
+    if ($Value -ne "0" -and
+        $Value -ne "128" -and
+        $Value -ne "256") {
         throw "Invalid [$Name]. Needs to be one of [0, 128, 256]."
     }
 
