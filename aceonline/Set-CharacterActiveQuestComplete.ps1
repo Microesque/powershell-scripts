@@ -1,3 +1,46 @@
+<#
+.SYNOPSIS
+Marks the active quests of a character as complete via the MSSQL database.
+
+.DESCRIPTION
+Connects to the MSSQL database and updates the state of the currently active
+quests as complete for the specified character. The script runs in interactive
+mode by default, prompting for parameters. It can be run in non-interactive mode
+by using the -NonInteractive switch, which requires all parameters to be
+supplied.
+
+.PARAMETER MssqlServerAddress
+The address of the MSSQL server to connect to (e.g., 'localhost',
+'192.168.1.10').
+
+.PARAMETER MssqlUsername
+The username for authenticating to the MSSQL server.
+
+.PARAMETER MssqlPassword
+The password for authenticating to the MSSQL server.
+
+.PARAMETER CharacterName
+The name of the character whose active quests will be marked as complete.
+
+.PARAMETER NonInteractive
+If specified, disables interactive prompts and requires all parameters to be
+provided. Throws an error if any parameter is missing.
+
+.OUTPUTS
+None. Prints informational messages to the host. Intended for use by catching
+throws with error messages. Returns exit code 0 when successful.
+
+.NOTES
+- Throws an error if parameter validation fails.
+- Throws an error if the character does not exist or if database operations
+fail.
+- Throws an error if the character has no active quests.
+- Requires the .psm1 files in the `/modules` directory.
+- The character must re-log in for the quest state changes to take effect.
+- For more information about quests, refer to table info
+`atum2_db_1.dbo.td_CharacterQuest`.
+#>
+
 # ==============================================================================
 # =================================== PARAMS ===================================
 # ==============================================================================

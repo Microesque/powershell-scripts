@@ -1,3 +1,52 @@
+<#
+.SYNOPSIS
+Adds a specified item to a character's inventory via the MSSQL database.
+
+.DESCRIPTION
+Connects to the MSSQL database and adds the specified item to the specified
+character's inventory. The script runs in interactive mode by default, prompting 
+for parameters. It can be run in non-interactive mode by using the
+-NonInteractive switch, which requires all parameters to be supplied.
+
+.PARAMETER MssqlServerAddress
+The address of the MSSQL server to connect to (e.g., 'localhost',
+'192.168.1.10').
+
+.PARAMETER MssqlUsername
+The username for authenticating to the MSSQL server.
+
+.PARAMETER MssqlPassword
+The password for authenticating to the MSSQL server.
+
+.PARAMETER CharacterName
+The name of the character to whom the item will be added.
+
+.PARAMETER ItemNumber
+The numeric identifier of the item to add (`ItemNum` in the database).
+
+.PARAMETER ItemCount
+The quantity of the item to add to the character's inventory.
+
+.PARAMETER NonInteractive
+If specified, disables interactive prompts and requires all parameters to be
+provided. Throws an error if any parameter is missing.
+
+.OUTPUTS
+None. Prints informational messages to the host. Intended for use by catching
+throws with error messages. Returns exit code 0 when successful.
+
+.NOTES
+- Throws an error if parameter validation fails.
+- Throws an error if the character does not exist, if database operations fail, 
+or if parameters are missing in non-interactive mode.
+- Requires the .psm1 files in the `/modules` directory.
+- Requires the target character to re-log in for their inventory to update.
+- Existing item counts are incremented, while new items are inserted into the
+inventory. Completely ignores storage.
+- For more information about inventory management, refer to table info
+`atum2_db_1.dbo.td_Store`.
+#>
+
 # ==============================================================================
 # =================================== PARAMS ===================================
 # ==============================================================================
