@@ -1,3 +1,35 @@
+<#
+.SYNOPSIS
+Installs and configures a WSL2 Debian distribution for the current system.
+
+.DESCRIPTION
+Installs a WSL2 Debian distribution for the current system, then performs the
+standard apt update/upgrade and clean ups and create a default user with the
+credentials:
+
+.DESCRIPTION
+Installs a WSL2 Debian distribution for the current system, then performs a
+standard apt update, upgrade, and cleanup. Finally, creates a default user with
+the following credentials:
+    Username: asd
+    Password: asd
+    
+This script must be executed with administrative privileges.
+
+.OUTPUTS
+None. Prints informational messages to the host. Intended to be used with the
+exit code. Exitcode:
+    0 -> Debian WSL2 distribution was successfully installed and initialized.
+    1 -> Installation or configuration failed, or the distribution is already
+         installed.
+
+.NOTES
+- Requires the .psm1 files in the `/modules` directory.
+- Default WSL version will be set to WSL2.
+- If a Debian installation already exists, the script will fail with exitcode 1.
+#>
+[CmdletBinding()]
+
 # ==============================================================================
 # =================================== IMPORTS ==================================
 # ==============================================================================

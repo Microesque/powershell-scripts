@@ -1,3 +1,26 @@
+<#
+.SYNOPSIS
+Installs or updates the WSL to ensure WSL2 can run on the current system.
+
+.DESCRIPTION
+Installs or updates the Windows Subsystem for Linux (WSL), then verifies that
+WSL2 is correctly installed by checking the availability of a kernel version.
+
+This script must be executed with administrative privileges.
+
+.OUTPUTS
+None. Prints informational messages to the host. Intended to be used with the
+exit code. Exitcode:
+    0 -> WSL installation or update was successful and WSL2 is available.
+    1 -> WSL installation or update failed, `wsl.exe` is unavailable, or WSL2
+         verification failed.
+
+.NOTES
+- Requires the .psm1 files in the `/modules` directory.
+- WSL2 verification is performed by checking for a Linux kernel version.
+#>
+[CmdletBinding()]
+
 # ==============================================================================
 # =================================== IMPORTS ==================================
 # ==============================================================================

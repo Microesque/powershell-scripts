@@ -1,3 +1,43 @@
+<#
+.SYNOPSIS
+Checks whether the current system meets the requirements for running WSL2.
+
+.DESCRIPTION
+Performs a series of software and hardware checks to determine whether the
+current Windows system is capable of running Windows Subsystem for Linux 2
+(WSL2).
+
+This script must be executed with administrative privileges.
+
+Software checks performed:
+- Checks if the OS is Windows (immediately returns $false if not).
+- Checks Windows Build number (19041+ required).
+- Checks the state of "VirtualMachinePlatform" Windows Feature.
+- Checks the state of "Microsoft-Windows-Subsystem-Linux" Windows Feature.
+
+Hardware checks performed:
+- Checks for an active hypervisor (immediately returns $true if Hyper-V is
+active).
+- Checks CPU support for hardware virtualization (VT-x/AMD-V).
+- Checks CPU support for Second Level Address Translation (SLAT).
+- Checks the state of hardware virtualization in BIOS/UEFI settings.
+
+.OUTPUTS
+None. Prints informational messages to the host. Intended to be used with the
+exit code. Exitcode:
+    0 -> All required conditions are satisfied.
+    1 -> One or more required software or hardware requirements for WSL2
+         were not met.
+
+.NOTES
+- Requires the .psm1 files in the `/modules` directory.
+- This script only performs compatibility checks and does not modify the system
+configuration.
+- If another hypervisor is detected instead of Hyper-V, it may prevent WSL2 from
+running successfully.
+#>
+[CmdletBinding()]
+
 # ==============================================================================
 # =================================== IMPORTS ==================================
 # ==============================================================================
