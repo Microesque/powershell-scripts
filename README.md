@@ -1,1 +1,1 @@
-My custom PowerShell scripts.
+Everything is documented within the directories and scripts.
