@@ -243,9 +243,9 @@ powershell.exe -NoProfile -ExecutionPolicy Bypass `
 >- Contains all properties of all items.
 >- One of the most useful tables to join with, so you can refer to items with their names instead of their `ItemNum`.
 >- Also contains basically all attributes bound to the item such as item names, min/max level, damages, required unit type, spi price, wp price etc...
->- Contains the all useful `ItemNum` column which is used to refer to an item in other tables, such as a monster dropping a given item. Although, the probability of dropping is not a property of the item itself, so it would be part of the moster table.
+>- Contains the all useful `ItemNum` column which is used to refer to an item in other tables, such as a monster dropping a given item. Although, the probability of dropping is dependent on the mob and not a property of the item itself, so it would be part of the moster table.
 >- `SPI` is also an item with `ItemNum = 7000022`.
->- `WP` and `Cash` are bound to the account and not the character, so they are not items. `Price` column determines the shop price for both `SPI` and `WP`, while a dedicated `CashPrice` column determines the cash shop price for the given item.
+>- `WP` and `Cash` are bound to the account and not the character, so they are not items. `SellingPrice` column determines the selling price when dragged onto a shop, while the purchasing price is determined by the `Price` column of the [ti_Shop](#atum2_db_accountdboti_shop) table.
 >- For weapons, `MultiTarget` column determines how many targets can be selected at a time. For normal weapons besides `Snipe` this is typically `1`. This can be set to `0` to make a weapon unable to hit anything.
 >- The weapon shot by `P.E.D` is also an item that can be edited with the `ItemNum = 7047795`.
 >- Changing certain columns requires re-generating and updating of `omi.tex` file for both the server and the client. The changes will apply without the update, but won't reflect correctly on the UI of the game.
@@ -283,10 +283,9 @@ powershell.exe -NoProfile -ExecutionPolicy Bypass `
 >- Determines the tab in which the cash shop items appear as well as their final prices.
 >- Consists of 4 columns:
 >    - `ItemNum` -> The item. Refer to [ti_ItemInfo](#atum2_db_accountdboti_iteminfo).
->    - `CashPrice` -> Cash price of the item. Overwrites the price specified in the [ti_ItemInfo](#atum2_db_accountdboti_iteminfo).
 >    - `Tab` -> Tab in which the item will appear. [1-6]
 >    - `ItemAttribute` -> Likely allows overwriting the attribute of the item. Unless you know what you're doing, just copy the `ItemAttribute` column of the [ti_ItemInfo](#atum2_db_accountdboti_iteminfo).
->- Adding items to the [cash shop](#atum2_db_accountdboti_shop) also requires adding a corresponding entry here.
+>- Adding items to the cash shop via [ti_Shop](#atum2_db_accountdboti_shop) table also requires adding a corresponding entry here.
 
 ---
 
@@ -296,6 +295,7 @@ powershell.exe -NoProfile -ExecutionPolicy Bypass `
 >    - `ShopOrder` -> Unique index (not a key).
 >    - `UniqueNumber` -> Shop ID.
 >    - `ItemNum` -> The item. Refer to [ti_ItemInfo](#atum2_db_accountdboti_iteminfo).
+>    - `Price` -> Price of the item.
 >- Corresponding shop names for the shop ID:
 >    - `9001` -> Weapon Shop BCU
 >    - `9101` -> Weapon Shop ANI

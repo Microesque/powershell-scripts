@@ -167,8 +167,6 @@ $columns = @{
     "WebPoint"                        = "0"
     "ActivationCode"                  = "NULL"
     "Active"                          = "1"
-    "LastGetDCoinDate"                = "NULL"
-    "GameContinueTimeInSecondofEvent" = "NULL"
 }
 
 Add-MSSQLRowIntoTable `
