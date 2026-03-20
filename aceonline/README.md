@@ -40,6 +40,7 @@ powershell.exe -NoProfile -ExecutionPolicy Bypass `
 - [atum2_db_account.dbo.ti_Monster](#atum2_db_accountdboti_monster)
 - [atum2_db_account.dbo.ti_MonsterItem](#atum2_db_accountdboti_monsteritem)
 - [atum2_db_account.dbo.ti_OverlapItem](#atum2_db_accountdboti_overlapitem)
+- [atum2_db_account.dbo.ti_RareItemInfo](#atum2_db_accountdboti_rareiteminfo)
 - [atum2_db_account.dbo.ti_Shop](#atum2_db_accountdboti_shop)
 
 ---
@@ -289,6 +290,102 @@ powershell.exe -NoProfile -ExecutionPolicy Bypass `
 >    - `Tab` -> Tab in which the item will appear. [1-6]
 >    - `ItemAttribute` -> Likely allows overwriting the attribute of the item. Unless you know what you're doing, just copy the `ItemAttribute` column of the [ti_ItemInfo](#atum2_db_accountdboti_iteminfo).
 >- Adding items to the cash shop via [ti_Shop](#atum2_db_accountdboti_shop) table also requires adding a corresponding entry here.
+
+---
+
+### atum2_db_account.dbo.ti_RareItemInfo
+>- Defines the enchants, their probabilities, and the stats they give for various weapons and items.
+>- `CodeNum` is the `private key` and must be unique. The value in this column is used to assign the enchant to items.
+>- `ReqUseType` is an unknown to me.
+>- `ReqMinLevel` always seems to be 1. Don't know how it affects the enchant.
+>- `ReqMaxLevel` always seems to be 120. Don't know how it affects the enchant.
+>- `ReqItemKind` seems to be the type of item enchant is applicable to:
+>    - `44`  -> Standard weapons
+>    - `48`  -> Advanced weapons
+>    - `7`   -> Armors
+>    - `...` -> There seems to be more but I don't know what they refer to.
+>- `ReqAttackPart` always seems to be 0. Don't know how it affects the enchant.
+>- `ReqDefensePart` always seems to be 0. Don't know how it affects the enchant.
+>- `ReqDodgePart` always seems to be 0. Don't know how it affects the enchant.
+>- `ReqFuelPart` always seems to be 0. Don't know how it affects the enchant.
+>- `ReqShieldPart` always seems to be 0. Don't know how it affects the enchant.
+>- `ReqShoulPart` always seems to be 0. Don't know how it affects the enchant.
+>- `DestParameterX` is the stat the corresponding `ParameterValueX` will apply to.
+>- `ParameterValueX` is the modifier the corresponding `DestParameterX` will receive.
+>- `Probability` is the probability of getting the enchant. The chances of getting the enchant depends on the probabilities of the other enchants and their relation.
+>- Below is a list of `DestParameterX` values and what they represent.
+>    - `18`  -> Damage (std) (min)
+>    - `19`  -> Damage (adv) (min)
+>    - `20`  -> Probability (std)
+>    - `21`  -> Probability (adv)
+>    - `22`  -> Defence (std)
+>    - `23`  -> Defence (adv)
+>    - `24`  -> Evasion (std)
+>    - `25`  -> Evasion (adv)
+>    - `31`  -> ReAttack (std)
+>    - `32`  -> ReAttack (adv)
+>    - `71`  -> Damage (std) (max)
+>    - `72`  -> Damage (adv) (max)
+>    - `75`  -> Weight (std)
+>    - `76`  -> Weight (adv)
+>    - `129` -> Radar (std)
+>    - `130` -> Radar (adv)
+>    - `157` -> EXP
+>    - `159` -> Drop Rate
+>    - `161` -> Shield Recovery
+>    - `162` -> Sp Recovery
+>    - `176` -> Speed
+>    - `184` -> Pierce (std)
+>    - `185` -> Pierce (adv)
+>- Note that, `ParameterValueX` will change depending on the type of stat it applies to. For example, `+15% probability` requires a value of `15`. While -15% ReAttack will requires a value of `-0.15`. Reference the other entries in the table.
+>- Below is a list of the top tier enchants for myself to reference:
+
+`Weapon Fixes:`
+| Fix Name | Tier  | Min/Max | Prob | Pierce | ReAtk | Weight |
+| -------- | ----- | ------- | ---- | ------ | ----- | ------ |
+| Fear     | Hyper | 25      |      |        |       |        |
+| Navas    | Hyper | 20      | 20   |        |       |        |
+| Asmodi   | Hyper | 15      |      | 15     |       |        |
+| Max      | Hyper | 15      |      |        | 15    |        |
+| Sentinal | Hyper | 15      |      |        |       | 30     |
+| Wrath    | Hyper |         | 15   | 15     |       |        |
+| Legend   | Hyper |         | 15   |        | 15    |        |
+| Watcher  | Hyper |         | 15   |        |       | 30     |
+| Warrior  | Hyper |         |      | 15     | 15    |        |
+| Warder   | Hyper |         |      | 15     |       | 30     |
+| Sentry   | Hyper |         |      |        | 15    | 30     |
+
+`Armor Fixes:`
+| Focus      | Weapon  | Fix Name   | Tier  | Stats                                                                                   |
+| ---------- | ------- | ---------- | ----- | --------------------------------------------------------------------------------------- |
+| EXP        | STD     | Endlos     | Super | Exp +22% - Std Min/Max +7% - Std Prc 5.00% - Adv Prc +5.00%                             |
+| EXP        | ADV     | Allocer    | Super | Exp +20% - Adv Min/Max +10% - Spd +6%                                                   |
+| EXP + DMG  | STD     | Creed      | Super | Exp +15% - Std Min/Max +10% - Std Prob +7.00%                                           |
+| EXP + DMG  | ADV     | Aeon       | Super | Exp +15% - Adv Min/Max +10% - Adv Rdr +12.00%                                           |
+| DROP       | STD&ADV | Malevolent | Super | DropRate +24% - SP Recov +17% - Shd Recov +22%                                          |
+| DROP + DMG | STD     | Limbo      | Super | DropRate +20% - Std Min +10% - Std Max +22%                                             |
+| DROP + DMG | STD     | Forbidden  | Super | DropRate +20% - Std Prob +4.50% - Std Rdr +5.00% - SP Recov +10%                        |
+| DROP + DMG | ADV     | Agares     | Super | DropRate +22% - Adv Min/Max +10% - Std Min +10% - SP Recov +15%                         |
+| DROP + DMG | STD&ADV | Odyssey    | Hyper | DropRate +18% - Std Prob +9.80% - Adv Prob +9.80% - Sp Recov +15% - Shd Recov +15%      |
+| EXP + DROP | STD&ADV | Orichalcum | Super | Exp +15% - DropRate +20% - SP Recov +12%                                                |
+| EXP + DROP | ADV     | Oracle     | Super | Exp +15% - DropRate +20% - Adv Prob +4.00%                                              |
+| DMG        | STD     | Limbo      | Super | Std Min +10% - Std Max +22% - DropRate +20%                                             |
+| DMG        | STD     | Testament  | Hyper | Std Min/Max +10% - Adv Max +10% - 6.00% Std Prc - SP Recov +15%                         |
+| DMG        | STD     | Tyranny    | Hyper | Std Min/Max +10% - Adv Max +10% - Std Prob +6.00% - SP Recov +15%                       |
+| DMG        | STD     | Origin     | Hyper | Std Prob +9.80% - Adv Prob +9.80% - Shd Recov +15% - SP Recov +15% - Std Rdr Rng +9.00% |
+| DMG        | ADV     | Conclave   | Super | Adv Min +21% - Adv Max +10% - Std Prc +5.00% - Adv Prc +5.00%                           |
+| DMG        | ADV     | Macha      | Hyper | Std Prob +4.71% - Adv Prob +4.71% - Adv Prc 4.50% - Std Rdr +5.00% - Spd +5%            |
+| DMG        | ADV     | Ose        | Hyper | Adv Min +9% - Std Prob +9.80% - Adv Prob +9.80% - SP Recov +15% - Shd Recov +15%        |
+| Armor      | EVA     | Bathin     | Super | +10% Std Eva - +12% Adv Eva                                                             |
+| Armor      | DEF     | Baldr      | Super | +10% Std Def - +12% Adv Def                                                             |
+
+> NOTE:
+>- Some of the fixes listed above have a chance to also come with additional stat bonuses (e.g., +5% prob, -weight, +overheat time etc.). This applies to all listed weapon fixes, along with only the `Bathin` and `Baldr` armor fixes. 
+>- For armor fixes, `Focus: DMG` refers to all stats that contribute to damage, including probability and piercing.
+>- `Sentinel` is a custom weapon enchant I added for my own server.
+>- `Watcher` is a custom weapon enchant I added for my own server.
+>- `Warder` is a custom weapon enchant I added for my own server.
+>- `Sentry` is a custom weapon enchant I added for my own server.
 
 ---
 
