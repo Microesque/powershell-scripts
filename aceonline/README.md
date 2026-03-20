@@ -247,6 +247,7 @@ powershell.exe -NoProfile -ExecutionPolicy Bypass `
 >- `SPI` is also an item with `ItemNum = 7000022`.
 >- `WP` and `Cash` are bound to the account and not the character, so they are not items. `SellingPrice` column determines the selling price when dragged onto a shop, while the purchasing price is determined by the `Price` column of the [ti_Shop](#atum2_db_accountdboti_shop) table.
 >- For weapons, `MultiTarget` column determines how many targets can be selected at a time. For normal weapons besides `Snipe` this is typically `1`. This can be set to `0` to make a weapon unable to hit anything.
+>- `LinkItem` determines the required item to purchase. For example, for an elite skill, it would point to the itemnum of elite skill opening card
 >- The weapon shot by `P.E.D` is also an item that can be edited with the `ItemNum = 7047795`.
 >- Changing certain columns requires re-generating and updating of `omi.tex` file for both the server and the client. The changes will apply without the update, but won't reflect correctly on the UI of the game.
 >- `ItemAttribute` also determines stuff like the requirements to buy it, or weather you can enchant a weapon or not. For example, you can change the `ItemAttribute` of a unique weapon to make it enchantable.
@@ -255,6 +256,8 @@ powershell.exe -NoProfile -ExecutionPolicy Bypass `
 
 ### atum2_db_account.dbo.ti_Monster
 >- Determines the various stats of every mob in the game.
+>- `Experience` column is the amount of experience the monster gives on kill.
+>- `MonsterItemXX` columns list the attacks a monster is capable of doing. The nature of the attack such as the delay/frequency/damage are pre-defined.
 >- I won't pretend like I know what each column does, but you can modify the level, hp, regen, etc, values of the monsters from here. Unless you know what you're doing, you'd mostly use this table for its `UniqueNumber` column to join and reference the name of the monsters in other tables.
 >- Do know this: certain aspects of monsters, such as which map they spawn in and how many can spawn at a time, are stored in the game's map files, not in this table. These files require dedicated tools to view and modify.
 
@@ -295,7 +298,7 @@ powershell.exe -NoProfile -ExecutionPolicy Bypass `
 >    - `ShopOrder` -> Unique index (not a key).
 >    - `UniqueNumber` -> Shop ID.
 >    - `ItemNum` -> The item. Refer to [ti_ItemInfo](#atum2_db_accountdboti_iteminfo).
->    - `Price` -> Price of the item.
+>    - `Price` -> Price of the item. The price listed here automatically turns into SPI price for regular shops, WP price for the WP shop, and cash price for the cash shop.
 >- Corresponding shop names for the shop ID:
 >    - `9001` -> Weapon Shop BCU
 >    - `9101` -> Weapon Shop ANI
