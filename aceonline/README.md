@@ -296,7 +296,7 @@ powershell.exe -NoProfile -ExecutionPolicy Bypass `
 ### atum2_db_account.dbo.ti_RareItemInfo
 >- Defines the enchants, their probabilities, and the stats they give for various weapons and items.
 >- `CodeNum` is the `private key` and must be unique. The value in this column is used to assign the enchant to items.
->- `ReqUseType` is an unknown to me.
+>- `ReqUseType` is the rarity I believe. I think 7 is super rarity, while 11 is hyper rarity; I'm not fully sure though. It does seem that, eventhough super gamble cards can give hyper tier enchants, the max tier enchants listed below, which are set to 11, cannot be given by the super gamble cards. Changing them to 7 makes them obtainable via super gamble cards as well.
 >- `ReqMinLevel` always seems to be 1. Don't know how it affects the enchant.
 >- `ReqMaxLevel` always seems to be 120. Don't know how it affects the enchant.
 >- `ReqItemKind` seems to be the type of item enchant is applicable to:
